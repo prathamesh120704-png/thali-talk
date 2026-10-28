@@ -31,10 +31,10 @@ async function callGemini(system, text) {
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents: [{ role: "user", parts: [{ text }] }],
-      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 900, temperature: 0.2 },
+      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 1200, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } },
     }),
   });
-  if (!r.ok) throw new Error("upstream " + r.status);
+  if (!r.ok) throw new Error("gemini " + r.status + " " + (await r.text()).slice(0, 200));
   const j = await r.json();
   const raw = ((j.candidates || [])[0]?.content?.parts || []).map(c => c.text || "").join("");
   const m = raw.match(/\{[\s\S]*\}/);
@@ -77,6 +77,7 @@ module.exports = async (req, res) => {
     if (flag && flag.soft && !out.note) out.note = flag.message;
     return res.status(200).json(out);
   } catch (e) {
-    return res.status(502).json({ error: "ai_failed" });
+    console.error("analyze failed:", e.message);
+    return res.status(502).json({ error: "ai_failed", detail: String(e.message).slice(0, 240) });
   }
 };
