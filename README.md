@@ -22,14 +22,14 @@
 ```bash
 cd public && python -m http.server 8000   # offline demo mode, no key needed
 node tests/run-tests.js                   # the 10-input test, offline parser
-ANTHROPIC_API_KEY=sk-... node tests/run-tests.js ai   # same inputs through the live AI
+GEMINI_API_KEY=YOUR_KEY node tests/run-tests.js ai   # same inputs through the live AI
 ```
 
 ## Deploy (Vercel, free)
 
 1. Push this repo to a **public** GitHub repository.
 2. On vercel.com choose **Add New → Project**, import the repo, keep defaults (`vercel.json` sets the output folder to `public`).
-3. Add environment variable `ANTHROPIC_API_KEY` (and set a low spend limit with Anthropic). Optionally `ANTHROPIC_MODEL`.
+3. Add environment variable `GEMINI_API_KEY` (from Google AI Studio; set a low quota or spend cap). Optionally `GEMINI_MODEL`.
 4. Redeploy, open the link in a private window, and confirm the badge says **AI on**.
 
 No key is ever committed (`.gitignore` blocks `.env*`).
@@ -46,6 +46,6 @@ No key is ever committed (`.gitignore` blocks `.env*`).
 ## Credits
 
 - No third-party libraries or images. Plain HTML, CSS and JavaScript.
-- AI: Anthropic Claude (via the Messages API) for meal understanding; Claude Code was used to help write this code (disclosed in the report).
+- AI: Google Gemini API for meal understanding; Claude Code was used to help write this code (disclosed in the report).
 - Review data: Apple's public customer-review feed for HealthifyMe and MyFitnessPal (India), used for research only.
 - Calorie values in the offline parser are rough home-cooking estimates for a demo, not clinical data.

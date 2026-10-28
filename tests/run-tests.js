@@ -1,6 +1,6 @@
 // Runs the 10 realistic inputs from the report (Q3).
 //   node tests/run-tests.js          -> offline demo parser (no key needed)
-//   ANTHROPIC_API_KEY=... node tests/run-tests.js ai   -> live AI through the same API handler
+//   GEMINI_API_KEY=... node tests/run-tests.js ai   -> live AI through the same API handler
 // Prints a markdown table to paste into REPORT.md. "Good enough?" is for you to judge by hand.
 const Engine = require("../public/engine.js");
 const handler = require("../api/analyze.js");

@@ -57,7 +57,7 @@
 
 **Proactive behaviour.** The app opens with a check-in chosen by the time of day and the day's log ("Lunch kaisa raha?" after 2 pm with nothing logged; a reassuring note after a heavy day). A web app cannot push a notification when closed, so this is *in-app* proactivity only. This is a limit I accept (see hardest calls).
 
-**Test results.** Ten realistic inputs, including ones I expected to fail. The table below is from the **offline fallback parser** (the version the live app uses if the AI is unreachable), which I could run myself. **[[Live-AI run: set ANTHROPIC_API_KEY, run `node tests/run-tests.js ai`, and paste a second table or add a column. Judge "Good enough?" yourself against a food-composition table such as IFCT 2017 [5]. Do not leave my judgements unchecked.]]**
+**Test results.** Ten realistic inputs, including ones I expected to fail. The table below is from the **offline fallback parser** (the version the live app uses if the AI is unreachable), which I could run myself. **[[Live-AI run: set GEMINI_API_KEY, run `node tests/run-tests.js ai`, and paste a second table or add a column. Judge "Good enough?" yourself against a food-composition table such as IFCT 2017 [5]. Do not leave my judgements unchecked.]]**
 
 | # | Input | What the offline parser did | Good enough? |
 |---|---|---|---|
@@ -141,4 +141,5 @@ Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing
 | Tool used | What it was used for | How I checked its output |
 |---|---|---|
 | Claude (Claude Code) | Proposed the customer, feature decisions and app design; wrote the app code and the first draft of this report; searched for and summarised published sources. | [[Edit to match what you really did. Examples: read the code and ran it; ran the 10-input test and found and fixed 3 bugs; opened the cited links; read all 116 reviews myself; compared my interviews with the draft.]] |
+| Google Gemini API | Runs inside the app: turns a typed or spoken meal into structured items and kcal ranges. | Ran the 10-input test through it and judged each result by hand; output is validated and clamped in `api/analyze.js`; the red-flag rules run before it. |
 | Apple review feed (not AI) | Source of the 116 reviews. | Spot-checked tags against the originals in `docs/review-coding.csv`. |

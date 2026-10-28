@@ -2,7 +2,7 @@
 // POST { mode: "meal" | "profile", text, hour? }  ->  JSON (see SYSTEM_MEAL for the shape)
 const Engine = require("../public/engine.js");
 
-const MODEL = process.env.ANTHROPIC_MODEL || "claude-haiku-5-5";
+const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 const MAX_CHARS = 600;
 
 const SYSTEM_MEAL = `You are the food-logging brain of "Thali Talk", an app for Indian adults who eat mostly home-cooked food.
@@ -24,15 +24,19 @@ const SYSTEM_PROFILE = `Read a short self-description from an Indian adult setti
 Respond ONLY with JSON: {"age":int|null,"kg":number|null,"cm":number|null,"sex":"m"|"f"|null,"goal":"lose"|"maintain"|"gain","veg":boolean}.
 Never infer a medical condition. Never invent values.`;
 
-async function callClaude(system, text) {
-  const r = await fetch("https://api.anthropic.com/v1/messages", {
+async function callGemini(system, text) {
+  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent", {
     method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": process.env.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model: MODEL, max_tokens: 700, system, messages: [{ role: "user", content: text }] }),
+    headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
+    body: JSON.stringify({
+      systemInstruction: { parts: [{ text: system }] },
+      contents: [{ role: "user", parts: [{ text }] }],
+      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 900, temperature: 0.2 },
+    }),
   });
   if (!r.ok) throw new Error("upstream " + r.status);
   const j = await r.json();
-  const raw = (j.content || []).map(c => c.text || "").join("");
+  const raw = ((j.candidates || [])[0]?.content?.parts || []).map(c => c.text || "").join("");
   const m = raw.match(/\{[\s\S]*\}/);
   if (!m) throw new Error("no json");
   return JSON.parse(m[0]);
@@ -54,7 +58,7 @@ function cleanMeal(o) {
 
 module.exports = async (req, res) => {
   res.setHeader("Cache-Control", "no-store");
-  if (req.method === "GET") return res.status(200).json({ ai: !!process.env.ANTHROPIC_API_KEY }); // free health check
+  if (req.method === "GET") return res.status(200).json({ ai: !!process.env.GEMINI_API_KEY }); // free health check
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
   const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
   const text = String(body.text || "").slice(0, MAX_CHARS).trim();
@@ -62,14 +66,14 @@ module.exports = async (req, res) => {
   // Safety check runs before and independent of the model.
   const flag = Engine.redFlag(text);
   if (flag && !flag.soft) return res.status(200).json({ items: [], clarify: null, redFlag: flag.message, note: "", source: "rules" });
-  if (!process.env.ANTHROPIC_API_KEY) return res.status(503).json({ error: "ai_unavailable" });
+  if (!process.env.GEMINI_API_KEY) return res.status(503).json({ error: "ai_unavailable" });
   try {
     if (body.mode === "profile") {
-      const p = await callClaude(SYSTEM_PROFILE, text);
+      const p = await callGemini(SYSTEM_PROFILE, text);
       p.target = Engine.estimateTarget(p); p.source = "ai";
       return res.status(200).json(p);
     }
-    const out = cleanMeal(await callClaude(SYSTEM_MEAL, text));
+    const out = cleanMeal(await callGemini(SYSTEM_MEAL, text));
     if (flag && flag.soft && !out.note) out.note = flag.message;
     return res.status(200).json(out);
   } catch (e) {
