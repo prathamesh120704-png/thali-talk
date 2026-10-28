@@ -1,0 +1,23 @@
+# Secrets: never commit these
+.env
+.env.*
+*.pem
+*secret*
+*credentials*.json
+
+# Dependencies and build output
+node_modules/
+dist/
+build/
+.next/
+.vercel/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
