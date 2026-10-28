@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Thali Talk</title>
+<meta name="description" content="Say what you ate, in Hinglish or English. Thali Talk does the logging and the maths.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="notice" role="note">Not medical advice. Demo with made-up data only. It cannot diagnose or prescribe. For chest pain, fainting, blood, or breathlessness, see a doctor.</div>
+
+<main class="app">
+  <header class="top">
+    <h1>Thali Talk</h1>
+    <span id="mode" class="badge" title="Whether the AI or the offline fallback is answering">checking…</span>
+  </header>
+
+  <!-- First two minutes -->
+  <section id="onboard" class="card hidden">
+    <h2>Namaste. Tell me about you, in one sentence.</h2>
+    <p class="muted">No forms. Say it however you like. I'll work out a gentle daily budget. You can skip this.</p>
+    <textarea id="profileText" rows="3" placeholder="e.g. 34 saal, female, 68 kg, 160 cm, 5 kg kam karna hai, vegetarian"></textarea>
+    <div class="row">
+      <button id="profileGo" class="primary">Set my budget</button>
+      <button id="profileSkip" class="ghost">Skip (use 1,800)</button>
+    </div>
+    <div id="profileOut" class="muted"></div>
+  </section>
+
+  <!-- Normal day -->
+  <section id="home" class="hidden">
+    <section class="card today">
+      <div class="row between">
+        <div><div class="label">Today</div><div><span id="eaten" class="big">0</span> <span class="muted">of</span> <span id="budget" class="big">1800</span> <span class="muted">kcal</span></div></div>
+        <button id="editBudget" class="ghost small" aria-label="Change base budget">Edit</button>
+      </div>
+      <div class="bar" aria-hidden="true"><div id="barFill"></div><div id="barRange"></div></div>
+      <p id="budgetNote" class="muted"></p>
+    </section>
+
+    <section id="checkin" class="card checkin hidden"></section>
+
+    <section class="card">
+      <label for="mealText" class="label">What did you eat?</label>
+      <textarea id="mealText" rows="2" placeholder="aaj lunch me 2 roti, dal aur thodi sabzi, ek katori dahi"></textarea>
+      <div class="chips" id="examples"></div>
+      <div class="row">
+        <button id="mic" class="ghost" aria-label="Speak instead of typing">🎤 Speak</button>
+        <button id="logGo" class="primary grow">Log it</button>
+      </div>
+      <div id="busy" class="muted hidden">Reading your meal…</div>
+    </section>
+
+    <section id="result" class="card hidden"></section>
+
+    <section class="card">
+      <div class="label">Today's log</div>
+      <ul id="log" class="log"></ul>
+      <p id="logEmpty" class="muted">Nothing yet. No rush.</p>
+    </section>
+
+    <section class="card">
+      <div class="label">Last 7 days</div>
+      <div id="week" class="week"></div>
+      <p class="muted small-text">Grey line = your base budget. Going over today gently trims the next 3 days (never below 1,200). Eating less never earns you extra.</p>
+    </section>
+
+    <footer class="foot">
+      <button id="sample" class="ghost small">Load a sample week (made-up)</button>
+      <button id="reset" class="ghost small">Clear my data</button>
+      <p class="muted small-text">Everything is stored only in your browser. Estimates are rough ranges for home-cooked food, not measurements.</p>
+    </footer>
+  </section>
+</main>
+
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
