@@ -32,7 +32,7 @@
       const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 28000);
       const r = await fetch("/api/analyze", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, text }), signal: ctl.signal });
       clearTimeout(to);
-      if (!r.ok) throw new Error(r.status);
+      if (!r.ok) throw new Error(r.status + " " + (await r.text()).slice(0, 500));
       setMode(true);
       return await r.json();
     } catch (e) {
