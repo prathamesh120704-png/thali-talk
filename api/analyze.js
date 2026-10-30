@@ -2,7 +2,8 @@
 // POST { mode: "meal" | "profile", text, hour? }  ->  JSON (see SYSTEM_MEAL for the shape)
 const Engine = require("../public/engine.js");
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+// Tried in order; a busy or retired model falls through to the next one.
+const MODELS = [process.env.GEMINI_MODEL || "gemini-3.8-flash", "gemini-flash-latest", "gemini-flash-lite-latest"];
 const MAX_CHARS = 600;
 
 const SYSTEM_MEAL = `You are the food-logging brain of "Thali Talk", an app for Indian adults who eat mostly home-cooked food.
@@ -24,21 +25,34 @@ const SYSTEM_PROFILE = `Read a short self-description from an Indian adult setti
 Respond ONLY with JSON: {"age":int|null,"kg":number|null,"cm":number|null,"sex":"m"|"f"|null,"goal":"lose"|"maintain"|"gain","veg":boolean}.
 Never infer a medical condition. Never invent values.`;
 
-async function callGemini(system, text, fast = true) {
+async function tryModel(model, system, text, fast) {
   const gen = { responseMimeType: "application/json", maxOutputTokens: 2500, temperature: 0.2 };
   if (fast) gen.thinkingConfig = { thinkingLevel: "low" }; // short reasoning keeps replies quick
-  const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
-    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: "user", parts: [{ text }] }], generationConfig: gen }),
-  });
-  if (r.status === 400 && fast) return callGemini(system, text, false); // model rejected the thinking option: retry plainly
-  if (!r.ok) throw new Error("gemini " + r.status + " " + (await r.text()).slice(0, 200));
-  const j = await r.json();
-  const raw = ((j.candidates || [])[0]?.content?.parts || []).map(c => c.text || "").join("");
-  const m = raw.match(/\{[\s\S]*\}/);
-  if (!m) throw new Error("no json");
-  return JSON.parse(m[0]);
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 9000);
+  try {
+    const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent", {
+      method: "POST", signal: ctl.signal,
+      headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
+      body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: "user", parts: [{ text }] }], generationConfig: gen }),
+    });
+    if (r.status === 400 && fast) return tryModel(model, system, text, false); // thinking option rejected: retry plainly
+    if (!r.ok) throw new Error(model + " " + r.status + " " + (await r.text()).slice(0, 160));
+    const j = await r.json();
+    const raw = ((j.candidates || [])[0]?.content?.parts || []).map(c => c.text || "").join("");
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error(model + " returned no json");
+    return JSON.parse(m[0]);
+  } finally { clearTimeout(timer); }
+}
+
+async function callGemini(system, text) {
+  const errors = [];
+  for (const model of MODELS) {
+    try { return await tryModel(model, system, text, true); }
+    catch (e) { errors.push(e.name === "AbortError" ? model + " timed out" : e.message); }
+  }
+  throw new Error(errors.join(" | "));
 }
 
 function cleanMeal(o) {
