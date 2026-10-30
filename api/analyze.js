@@ -24,16 +24,15 @@ const SYSTEM_PROFILE = `Read a short self-description from an Indian adult setti
 Respond ONLY with JSON: {"age":int|null,"kg":number|null,"cm":number|null,"sex":"m"|"f"|null,"goal":"lose"|"maintain"|"gain","veg":boolean}.
 Never infer a medical condition. Never invent values.`;
 
-async function callGemini(system, text) {
+async function callGemini(system, text, fast = true) {
+  const gen = { responseMimeType: "application/json", maxOutputTokens: 2500, temperature: 0.2 };
+  if (fast) gen.thinkingConfig = { thinkingLevel: "low" }; // short reasoning keeps replies quick
   const r = await fetch("https://generativelanguage.googleapis.com/v1beta/models/" + MODEL + ":generateContent", {
     method: "POST",
     headers: { "content-type": "application/json", "x-goog-api-key": process.env.GEMINI_API_KEY },
-    body: JSON.stringify({
-      systemInstruction: { parts: [{ text: system }] },
-      contents: [{ role: "user", parts: [{ text }] }],
-      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 2500, temperature: 0.2 },
-    }),
+    body: JSON.stringify({ systemInstruction: { parts: [{ text: system }] }, contents: [{ role: "user", parts: [{ text }] }], generationConfig: gen }),
   });
+  if (r.status === 400 && fast) return callGemini(system, text, false); // model rejected the thinking option: retry plainly
   if (!r.ok) throw new Error("gemini " + r.status + " " + (await r.text()).slice(0, 200));
   const j = await r.json();
   const raw = ((j.candidates || [])[0]?.content?.parts || []).map(c => c.text || "").join("");

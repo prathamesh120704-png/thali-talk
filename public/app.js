@@ -29,13 +29,14 @@
     const flag = E.redFlag(text);
     if (flag && !flag.soft) return { items: [], redFlag: flag.message, source: "rules" };
     try {
-      const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 12000);
+      const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 28000);
       const r = await fetch("/api/analyze", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, text }), signal: ctl.signal });
       clearTimeout(to);
       if (!r.ok) throw new Error(r.status);
       setMode(true);
       return await r.json();
     } catch (e) {
+      console.warn("AI call failed, using offline mode:", e && e.message ? e.message : e);
       setMode(false);
       return mode === "profile" ? E.demoProfile(text) : E.demoParse(text);
     }
