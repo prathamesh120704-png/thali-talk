@@ -57,7 +57,7 @@
 
 **Proactive behaviour.** The app opens with a check-in chosen by the time of day and the day's log ("Lunch kaisa raha?" after 2 pm with nothing logged; a reassuring note after a heavy day). A web app cannot push a notification when closed, so this is *in-app* proactivity only. This is a limit I accept (see hardest calls).
 
-**Test results.** Ten realistic inputs, including ones I expected to fail. The table below is from the **offline fallback parser** (the version the live app uses if the AI is unreachable), which I could run myself. **[[Live-AI run: set GEMINI_API_KEY, run `node tests/run-tests.js ai`, and paste a second table or add a column. Judge "Good enough?" yourself against a food-composition table such as IFCT 2017 [5]. Do not leave my judgements unchecked.]]**
+**Test results.** Ten realistic inputs, including ones I expected to fail. The table below is from the **offline fallback parser** (the version the live app uses if the AI is unreachable), which I could run myself. I then ran four of the same inputs through the **live AI** (Gemini, via the deployed app, 30 Oct 2026), shown in the next table. **[[Run the other six inputs through the live AI (`GEMINI_API_KEY=... node tests/run-tests.js ai`), add them to the live table, and check my "Good enough?" judgements against a food-composition table such as IFCT 2017 [5]. They are my own judgement, not a measurement.]]**
 
 | # | Input | What the offline parser did | Good enough? |
 |---|---|---|---|
@@ -72,7 +72,18 @@
 | 9 | I fainted after lunch and have chest pain | Stopped: tells user to see a doctor. No logging. | Yes. This is the intended behaviour. |
 | 10 | 3 din se kuch nahi khaya, bas pani piya | Stopped, kind message to talk to a doctor or someone they trust | Yes. |
 
-**What this shows.** Three of ten were wrong or only partly right in ways the user could be misled by (3, 5, 6). Those are the cases where the AI should beat a dictionary: understanding "butter wali", "kal raat" and "chawal zyada" is precisely what a rules parser cannot do. That is the honest case for the AI in this product. **[[After the live run, say whether it fixed 3, 5 and 6, and report any new failures.]]**
+**Live AI, same inputs (four of ten so far).** Screenshots from the live app; kcal and ranges as returned.
+
+| # | Input | What the live AI did | Good enough? |
+|---|---|---|---|
+| 1 | aaj lunch me 2 roti, dal aur thodi sabzi, ek katori dahi | 2 roti 210, 1 katori dal 130, 1 katori sabzi 130 (low confidence, "assumed 1 katori"), 1 katori dahi 100, each with a range and assumption | Mostly. **Miss:** "thodi" (a little) sabzi became a full katori; the offline parser had 0.5. It did flag low confidence. |
+| 3 | ghar ka thali tha, chawal zyada khaya | Rice 2 katori (extra, as asked) 300 + dal 130 + sabzi 120 → **550 kcal (430–670)** | Better than offline (which counted rice twice, 895). **But** it invented dal and sabzi the user never named and added no roti. |
+| 5 | pav bhaji khayi office ke bahar, butter wali | "Pav bhaji with extra butter", 550 kcal (450–650) | Partly. It noticed the butter, which offline missed, but only about 30 kcal above the plain version; street pav bhaji with extra butter is probably higher. Its note claimed it "counted the extra calories", which overstates. |
+| 6 | kal raat kuch halka khaya, khichdi jaisa | 1.5 katori khichdi, 220 kcal (180–260) | **No on timing.** It did not understand "kal raat" (last night), so the meal would be saved under today. Portion plausible. |
+
+**What this shows.** The live AI beat the rule-based parser on the double-counted thali (3) and the butter (5), which is the case for using AI here. It also failed in ways the user could be misled by: it quietly guessed portions and dishes (1, 3), probably under-counted (5), and missed the date (6). Its notes also drifted into judging food ("Good home meal!"), which cuts against the no-scolding design.
+
+**What I changed because of this.** (a) The AI now returns a `when` field, so "kal raat" saves under yesterday, with a visible "This will be saved under yesterday" line. (b) The prompt now forbids judging or praising food and asks for neutral, short notes. **[[Re-run inputs 1, 3, 5 and 6 on the live app after these changes and say whether they improved. Add a screenshot if you can.]]**
 
 ## Q4. What I will build, and what I will leave out
 
