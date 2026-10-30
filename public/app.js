@@ -135,7 +135,7 @@
       const a = document.createElement("div"); a.className = "alert"; a.textContent = res.redFlag; box.appendChild(a);
       pending = null; return;
     }
-    pending = { text, items: res.items, clarify: res.clarify };
+    pending = { text, items: res.items, clarify: res.clarify, when: res.when === "yesterday" ? "yesterday" : "today" };
     if (!res.items.length) {
       const a = document.createElement("div"); a.className = "alert"; a.textContent = (res.clarify && res.clarify.question) || "I couldn't find a food in that. Try again?"; box.appendChild(a); return;
     }
@@ -150,6 +150,7 @@
     });
     const tot = E.totals(res.items);
     const t = document.createElement("p"); t.innerHTML = "<strong></strong>"; t.firstChild.textContent = "Total ≈ " + fmt(tot.kcal) + " kcal (" + fmt(tot.low) + "–" + fmt(tot.high) + ")"; box.appendChild(t);
+    if (pending.when === "yesterday") { const w = document.createElement("p"); w.className = "muted small-text"; w.textContent = "This will be saved under yesterday."; box.appendChild(w); }
     if (res.note) { const n = document.createElement("div"); n.className = "alert"; n.textContent = res.note; box.appendChild(n); }
     if (res.clarify) {
       const q = document.createElement("div"); q.className = "alert"; q.textContent = res.clarify.question; box.appendChild(q);
@@ -172,11 +173,12 @@
     if (!pending) return;
     const targets = pending.items.filter(i => i.confidence === "low");
     (targets.length ? targets : pending.items).forEach(i => { i.kcal = Math.round(i.kcal * f); i.kcalLow = Math.round(i.kcalLow * f); i.kcalHigh = Math.round(i.kcalHigh * f); i.confidence = "medium"; i.assumption = "You told me the size"; });
-    showResult({ items: pending.items, clarify: null, note: "" }, pending.text);
+    showResult({ items: pending.items, clarify: null, note: "", when: pending.when }, pending.text);
   }
   function confirmMeal() {
     if (!pending) return;
-    const k = dkey(); (state.days[k] = state.days[k] || []).push({ t: Date.now(), text: pending.text, items: pending.items });
+    const past = pending.when === "yesterday"; const k = dkey(past ? addDays(new Date(), -1) : new Date());
+    (state.days[k] = state.days[k] || []).push({ t: Date.now() - (past ? 86400000 : 0), text: pending.text, items: pending.items });
     pending = null; $("result").classList.add("hidden"); $("mealText").value = ""; save(); render();
   }
 

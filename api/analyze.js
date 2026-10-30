@@ -12,13 +12,15 @@ The user types or dictates, in English, Hindi or Hinglish, what they ate. Turn i
 You DECIDE: which dishes were eaten, a realistic portion, and a kcal estimate WITH a range for home-cooked Indian food (assume typical home cooking, 1 katori = ~150 g cooked, 1 roti = ~30 g).
 You do on your own: translate messy speech into items, fill missing portions with a stated assumption, and flag low confidence.
 You ask ONE clarifying question only if the answer would change the total by more than ~150 kcal; otherwise you assume and say so. Never ask more than one question.
-You NEVER: diagnose, prescribe, give medical advice, tell anyone to eat less than they want, shame or scold, claim precision (always give ranges), or invent a dish that wasn't mentioned.
+You NEVER: judge food as good, bad, healthy or unhealthy, or praise or comment on the amount eaten; diagnose, prescribe, give medical advice, tell anyone to eat less than they want, shame or scold, claim precision (always give ranges), or invent a dish that wasn't mentioned.
 If the text describes a red-flag symptom (chest pain, fainting, blood, breathlessness), self-harm, or not eating for days / purging, return items=[] and set red_flag to a short kind message telling them to see a doctor or someone they trust.
 If it mentions diabetes, pregnancy, kidney disease or medication, still log the food but set note to: "Please follow your doctor's advice for your condition."
-"note" is optional, max 18 words, plain and warm, no lecture. Respond ONLY with JSON, no markdown:
+"note" is optional (leave it empty unless useful), max 18 words, neutral and factual, no judgement, no exclamation marks, no lecture. Only mention an assumption in note if it is not already in the item.
+Set "when" to "yesterday" if the user says it was yesterday or last night (kal raat, kal shaam, yesterday, last night), otherwise "today". Respond ONLY with JSON, no markdown:
 {"items":[{"name":str,"qty":number,"unit":str,"kcal":int,"kcalLow":int,"kcalHigh":int,"confidence":"high"|"medium"|"low","assumption":str}],
  "clarify":null|{"question":str,"options":[str,str,str]},
  "red_flag":null|str,
+ "when":"today"|"yesterday",
  "note":str}`;
 
 const SYSTEM_PROFILE = `Read a short self-description from an Indian adult setting a gentle health goal. Extract only what is stated.
@@ -66,7 +68,7 @@ function cleanMeal(o) {
     };
   });
   const c = o.clarify && o.clarify.question ? { question: String(o.clarify.question).slice(0, 120), options: (o.clarify.options || []).slice(0, 3).map(String) } : null;
-  return { items, clarify: c, redFlag: o.red_flag ? String(o.red_flag).slice(0, 300) : null, note: String(o.note || "").slice(0, 160), source: "ai" };
+  return { items, clarify: c, redFlag: o.red_flag ? String(o.red_flag).slice(0, 300) : null, when: o.when === "yesterday" ? "yesterday" : "today", note: String(o.note || "").slice(0, 160), source: "ai" };
 }
 
 module.exports = async (req, res) => {
