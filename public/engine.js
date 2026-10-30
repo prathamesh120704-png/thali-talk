@@ -128,7 +128,7 @@
     const big = vague.sort((a, b) => (b.kcalHigh - b.kcalLow) - (a.kcalHigh - a.kcalLow))[0];
     const clarify = big ? { question: "How much " + big.name + " was it?", options: ["Small", "Normal", "Big"] } : null;
     const note = flag && flag.soft ? flag.message : "";
-    const when = /kal\s+(raat|rat|shaam|dopahar|subah)|yesterday|last night/.test(lower) ? "yesterday" : "today";
+    const when = /\bkal\s+(raat|rat|shaam|dopahar|subah)\b|\byesterday\b|\blast night\b/.test(lower) ? "yesterday" : "today";
     return { items, clarify, note, when, source: "demo" };
   }
 
