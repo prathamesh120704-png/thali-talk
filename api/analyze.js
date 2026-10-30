@@ -2,7 +2,7 @@
 // POST { mode: "meal" | "profile", text, hour? }  ->  JSON (see SYSTEM_MEAL for the shape)
 const Engine = require("../public/engine.js");
 
-const MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const MODEL = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 const MAX_CHARS = 600;
 
 const SYSTEM_MEAL = `You are the food-logging brain of "Thali Talk", an app for Indian adults who eat mostly home-cooked food.
@@ -31,7 +31,7 @@ async function callGemini(system, text) {
     body: JSON.stringify({
       systemInstruction: { parts: [{ text: system }] },
       contents: [{ role: "user", parts: [{ text }] }],
-      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 1200, temperature: 0.2, thinkingConfig: { thinkingBudget: 0 } },
+      generationConfig: { responseMimeType: "application/json", maxOutputTokens: 2500, temperature: 0.2 },
     }),
   });
   if (!r.ok) throw new Error("gemini " + r.status + " " + (await r.text()).slice(0, 200));
