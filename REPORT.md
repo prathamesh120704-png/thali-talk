@@ -65,7 +65,7 @@
 
 **Proactive behaviour.** The app opens with a check-in chosen by the time of day and the day's log ("Lunch kaisa raha?" after 2 pm with nothing logged; a reassuring note after a heavy day). A web app cannot push a notification when closed, so this is *in-app* proactivity only. This is a limit I accept (see hardest calls).
 
-**Test results.** Ten realistic inputs, including ones I expected to fail. The table below is from the **offline fallback parser** (the version the live app uses if the AI is unreachable), which I could run myself. I then ran four of the same inputs through the **live AI** (Gemini, via the deployed app, 30 Oct 2026), shown in the next table. **[[Run the other six inputs through the live AI (`GEMINI_API_KEY=... node tests/run-tests.js ai`), add them to the live table, and check my "Good enough?" judgements against a food-composition table such as IFCT 2017 [5]. They are my own judgement, not a measurement.]]**
+**Test results.** Ten realistic inputs, including ones I expected to fail. The table below is from the **offline fallback parser** (the version the live app uses if the AI is unreachable), which I could run myself. I then ran **all ten** through the live AI (next table), which is the version a user actually meets.
 
 | # | Input | What the offline parser did | Good enough? |
 |---|---|---|---|
@@ -80,18 +80,30 @@
 | 9 | I fainted after lunch and have chest pain | Stopped: tells user to see a doctor. No logging. | Yes. This is the intended behaviour. |
 | 10 | 3 din se kuch nahi khaya, bas pani piya | Stopped, kind message to talk to a doctor or someone they trust | Yes. |
 
-**Live AI, same inputs (four of ten so far).** Screenshots from the live app; kcal and ranges as returned.
+**Live AI, all ten inputs.** Run on 31 Oct 2026 through the deployed app's endpoint (`node tests/run-tests.js live`; Gemini behind the app), after the fixes listed below. "Good enough?" is **my own judgement**, not a measurement against a food-composition table.
 
 | # | Input | What the live AI did | Good enough? |
 |---|---|---|---|
-| 1 | aaj lunch me 2 roti, dal aur thodi sabzi, ek katori dahi | 2 roti 210, 1 katori dal 130, 1 katori sabzi 130 (low confidence, "assumed 1 katori"), 1 katori dahi 100, each with a range and assumption | Mostly. **Miss:** "thodi" (a little) sabzi became a full katori; the offline parser had 0.5. It did flag low confidence. |
-| 3 | ghar ka thali tha, chawal zyada khaya | Rice 2 katori (extra, as asked) 300 + dal 130 + sabzi 120 → **550 kcal (430–670)** | Better than offline (which counted rice twice, 895). **But** it invented dal and sabzi the user never named and added no roti. |
-| 5 | pav bhaji khayi office ke bahar, butter wali | "Pav bhaji with extra butter", 550 kcal (450–650) | Partly. It noticed the butter, which offline missed, but only about 30 kcal above the plain version; street pav bhaji with extra butter is probably higher. Its note claimed it "counted the extra calories", which overstates. |
-| 6 | kal raat kuch halka khaya, khichdi jaisa | 1.5 katori khichdi, 220 kcal (180–260) | **No on timing.** It did not understand "kal raat" (last night), so the meal would be saved under today. Portion plausible. |
+| 1 | aaj lunch me 2 roti, dal aur thodi sabzi, ek katori dahi | 2 roti 210, dal 130, sabzi 120 (low confidence), dahi 60 → **520 kcal (420–630)** | Mostly. "Thodi" (a little) sabzi is still a full katori; the offline parser had half. Dahi at 60 kcal looks low for a katori; an earlier run gave 100. |
+| 2 | subah 2 idli sambar aur ek cutting chai | 2 idli 120, 1 katori sambar 100, cutting chai 60 → **280 kcal (220–340)** | Yes. Sambar was treated as its own dish, which the offline parser could not do. |
+| 3 | ghar ka thali tha, chawal zyada khaya | Rice 2 katori (extra, as asked) 300, dal 130, mixed vegetable curry 150 → **580 kcal (470–690)** | Partly. It fixes the offline double-count (895 kcal). But it invents dal and a curry the user never named, adds no roti, and the thali's contents change between runs (an earlier run gave dal and sabzi). |
+| 4 | ek bada samosa aur chai | 1 samosa 260, chai 100 → **360 kcal (300–420)** | **Inconsistent.** This run ignored "bada" (large). A second run returned "1 large piece" at 300 kcal. The same sentence gives different answers. |
+| 5 | pav bhaji khayi office ke bahar, butter wali | Pav bhaji with butter, 450 → **450 kcal (380–520)** | **No.** It names the butter but lands below the offline plain pav bhaji (520) and below an earlier AI run (550); street pav bhaji with extra butter is likely higher. Its "medium" confidence is too high. |
+| 6 | kal raat kuch halka khaya, khichdi jaisa | 1.5 katori khichdi 220 → **220 kcal (180–260)**, saved under yesterday (checked in a separate call) | Yes, after the fix: "kal raat" is now filed under yesterday. Before it, the meal went to today. |
+| 7 | had maggi and a coke around 4pm | Maggi 1 packet 350, Coke 250 ml 105 → **455 kcal (390–520)** | Yes. Sensible portions with units stated. |
+| 8 | mummy ne aloo paratha banaya tha, 2 khaye with curd | 2 aloo paratha 400, curd 100 → **500 kcal (430–570)** | Yes on quantity ("2 khaye" after the dish was understood). Paratha marked "high" confidence is overconfident, because the oil is unknown. |
+| 9 | I fainted after lunch and have chest pain | Stopped: told the user to see a doctor. No logging. | Yes. This is done by the rule-based check **before** the AI, so it does not depend on the model. |
+| 10 | 3 din se kuch nahi khaya, bas pani piya | Stopped: kind message to talk to a doctor or someone they trust. | Yes. Same rule-based check. |
 
-**What this shows.** The live AI beat the rule-based parser on the double-counted thali (3) and the butter (5), which is the case for using AI here. It also failed in ways the user could be misled by: it quietly guessed portions and dishes (1, 3), probably under-counted (5), and missed the date (6). Its notes also drifted into judging food ("Good home meal!"), which cuts against the no-scolding design.
+**What this shows.** The live AI beat the rule-based parser on the double-counted thali (3), sambar (2), the date in "kal raat" (6), and mixed-language sentences generally, which is the case for using AI in this product. It also failed in ways a user could be misled by:
+- **It varies from run to run.** The same sentence gave dahi at 60 or 100 kcal, a samosa at 260 or 300, a pav bhaji at 450 or 550. A single dish can move by about 100 kcal between runs.
+- **It invents dishes** the user never named when it sees a word like "thali" (3).
+- **It is sometimes overconfident** ("high" for a paratha with unknown oil, "medium" for a buttery pav bhaji).
+- **It quietly assumes quantities** ("thodi sabzi" became a full katori).
 
-**What I changed because of this.** (a) The AI now returns a `when` field, so "kal raat" saves under yesterday, with a visible "This will be saved under yesterday" line. (b) The prompt now forbids judging or praising food and asks for neutral, short notes. **[[Re-run inputs 1, 3, 5 and 6 on the live app after these changes and say whether they improved. Add a screenshot if you can.]]**
+That is why the app shows ranges and stated assumptions, lets the user correct a meal in plain words or with Edit, offers "Why these numbers?", and never lets the AI touch the budget arithmetic. The user, not the model, has the last word. The honest summary is that the AI removes the searching, not the guessing.
+
+**What I changed because of the tests.** (a) The AI returns a `when` field, so "kal raat" saves under yesterday, with a visible "This will be saved under yesterday" line (input 6 now passes). (b) The prompt forbids judging or praising food and asks for neutral notes; in the re-runs I inspected, the AI's notes were empty instead of "Good home meal!". (c) Corrections in plain words and a quantity editor were added because of inputs 1, 3 and 4. **[[Check a few of my "Good enough?" judgements against IFCT 2017 [5] or a dietitian's rough estimate, and change any you disagree with. They are my judgement.]]**
 
 ## Q4. What I will build, and what I will leave out
 

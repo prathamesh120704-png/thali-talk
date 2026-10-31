@@ -22,7 +22,7 @@
 ```bash
 cd public && python -m http.server 8000   # offline demo mode, no key needed
 node tests/run-tests.js                   # the 10-input test, offline parser
-GEMINI_API_KEY=YOUR_KEY node tests/run-tests.js ai   # same inputs through the live AI
+node tests/run-tests.js live             # same inputs through the deployed app (no key needed on your computer)
 ```
 
 ## Deploy (Vercel, free)
