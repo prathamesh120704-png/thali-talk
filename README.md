@@ -2,7 +2,7 @@
 
 **Prathmesh Pratap Pawar** · Roll No. **PGDMAI-25-06** · MAI-594 Introduction to Vibe Coding · AY 2026–27
 
-> **For urban Indian adults who eat mostly home-cooked food and keep quitting calorie apps: say what you ate, in Hinglish or English, and Thali Talk does the logging and the maths, with honest ranges, no paywall and no scolding.**
+> **For urban Indian adults in their 20s and 30s, who eat home-cooked food and eat out and keep quitting calorie apps: say what you ate, in Hinglish or English, and Thali Talk does the logging and the maths, with honest ranges, no paywall and no scolding.**
 
 - **Live app:** https://thali-talk.vercel.app
 - **Report:** [REPORT.md](REPORT.md)
