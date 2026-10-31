@@ -157,7 +157,7 @@ Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing
 
 ## Q5. User test
 
-**Build.** A static front end plus one serverless function (`api/analyze.js`) on Vercel. The API key is a host environment variable, never in the repository. If the AI is down, the app falls back to the offline parser and says "Offline demo mode". Data stays in the user's browser.
+**Build.** A static front end plus one serverless function on Vercel. The API key is a host environment variable, never in the repository. If the AI is down, the app falls back to an offline parser and says so. Data stays in the user's browser.
 
 **What the user test showed.** Jose (26, desk job; also Interview 2, so he is from my target group) tried the live app and told me it is "really good". No problems, confusion or wrong numbers were reported to me. That is one tester, and a test that finds nothing is weak evidence, so I do not claim more: my own live-AI test (Q3) shows the app is not free of problems.
 
@@ -172,7 +172,6 @@ This shows the features work, not that people find them easy. It does not replac
 
 **Found and fixed in my own testing (developer testing, not a user test).** The offline parser gave the "2" in "2 idli sambar" to the sambar; "bada samosa" showed 1.4 pieces; "kal raat" went to today; the AI's notes praised the food; the weekly summary did not refresh after water taps; and Google retired my first model and sometimes answers "high demand", so the app now tries three models and then the offline parser, labelled clearly.
 
-**With more time:** watch someone log a full day unaided, time it against the 30-second bar that Rizwan and Jose set, and compare the AI's estimates with a dietitian's.
 
 ## References
 
