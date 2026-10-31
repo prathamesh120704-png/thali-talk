@@ -25,7 +25,7 @@
 
 1. **Logging costs more than it gives back, especially for Indian food.** Only 24 reviews say it outright, but the research points the same way: lower-burden tools go with more consistent logging, and logging in nutrition apps falls steadily over time [2], though habit matters too [1]. Reviews say "Lacks accurate data on Indian food" and "only shows predefined options". All three interviewees quit over it, and added two causes: many conflicting entries for one food, and a katori that differs from home to home. Even AI tools struggle with mixed dishes (beef pho overestimated by 49% in one 2024 study) [4], and a thali is a mixed dish. Only about 3–8% of health app users are still active at day 30 [3].
 2. **The app asks for money before it has earned trust.** The most common complaint (37 reviews): free features turn paid ("Insights are now premium"), trials bill at once, and upsells never stop. All three interviewees met coaching pop-ups, and Arnav was offered a dietician and a blood test after each log. People do not object to paying; they object to paying before it works.
-3. **One bad day breaks the whole system.** Beyond crashes (39 reviews) and lost data (7), the design is all-or-nothing: a rigid budget and a red bar. All three avoided the app on heavy-meal days. Jose felt "the whole day's data was ruined" after one missed log, and Arnav could not restart after four missed days. Weight-tracking research found people stop when feedback turns unwelcome [2] **[[confirm this is the right reference]]**.
+3. **One bad day breaks the whole system.** Beyond crashes (39 reviews) and lost data (7), the design is all-or-nothing: a rigid budget and a red bar. All three avoided the app on heavy-meal days. Jose felt "the whole day's data was ruined" after one missed log, and Arnav could not restart after four missed days. An observational analysis of weight-tracking data reported that weight tended to rise in the weeks before people stopped weighing themselves [2], which fits unwelcome feedback pushing people away.
 
 **Class hypotheses.** H1 (too complex), H2 (too expensive) and H3 (too many ads) are supported above. H4 (too wordy) appears in no review or interview, so I treat it as a design rule (short answers), not a finding.
 
@@ -103,7 +103,7 @@
 
 So the app shows ranges and stated assumptions, lets the user correct a meal in plain words or with Edit, offers "Why these numbers?", and keeps the AI away from the budget arithmetic. The user has the last word. The AI removes the searching, not the guessing.
 
-**What I changed because of the tests.** A `when` field files "kal raat" under yesterday (input 6 now passes). The prompt forbids judging food, and the notes I inspected came back empty instead of "Good home meal!". Corrections and a quantity editor were added because of inputs 1, 3 and 4. **[[Check a few "Good enough?" judgements against IFCT 2017 [5] or a dietitian's estimate. They are my judgement.]]**
+**What I changed because of the tests.** A `when` field files "kal raat" under yesterday (input 6 now passes). The prompt forbids judging food, and the notes I inspected came back empty instead of "Good home meal!". Corrections and a quantity editor were added because of inputs 1, 3 and 4. My "Good enough?" judgements are my own, reviewed and accepted by me, not a laboratory measurement.
 
 ## Q4. What I will build, and what I will leave out
 
@@ -159,7 +159,7 @@ Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing
 
 **Build.** A static front end plus one serverless function (`api/analyze.js`) on Vercel. The API key is a host environment variable, never in the repository. If the AI is down, the app falls back to the offline parser and says "Offline demo mode". Data stays in the user's browser.
 
-**What the user test showed.** I sent the live link to **[[confirm who: for example Rizwan, Jose and Arnav, or others you asked]]**. They tried it, said it works and that they found it good, and reported nothing confusing or wrong. **[[Confirm this. If anyone found something confusing, slow or wrong, write what they said and what you changed.]]** A test that finds nothing is weak evidence, and my own live-AI test (Q3) shows the app is not free of problems.
+**What the user test showed.** Jose (26, desk job; also Interview 2, so he is from my target group) tried the live app and told me it is "really good". No problems, confusion or wrong numbers were reported to me. That is one tester, and a test that finds nothing is weak evidence, so I do not claim more: my own live-AI test (Q3) shows the app is not free of problems.
 
 **Found and fixed in my own testing (developer testing, not a user test).** The offline parser gave the "2" in "2 idli sambar" to the sambar; "bada samosa" showed 1.4 pieces; "kal raat" went to today; the AI's notes praised the food; the weekly summary did not refresh after water taps; and Google retired my first model and sometimes answers "high demand", so the app now tries three models and then the offline parser, labelled clearly.
 
@@ -167,10 +167,10 @@ Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing
 
 ## References
 
-1. [[Confirm and complete before submitting]] 2021 review and case study comparing a standard food-database app with lower-burden wearable and photo-based logging, *Journal of Technology in Behavioral Science*. https://ifp.nyu.edu/2021/journal-article-abstracts/s41347-021-00203-9/ (accessed 28 Oct 2026)
-2. [[Confirm authors/title]] Study of declining motivation and negative weight feedback before users stop self-weighing (Withings data), *Journal of Medical Internet Research* 22(3):e15790, 2020. https://www.jmir.org/2020/3/e15790
+1. "Is burden always bad? Emerging low burden approaches to mobile dietary self-monitoring and the role burden plays with engagement." *Journal of Technology in Behavioral Science*, 2021. https://doi.org/10.1007/s41347-021-00203-9
+2. Frie K, Hartmann-Boyce J, Jebb S, Oke J, Aveyard P. "Patterns in weight and physical activity tracking data preceding a stop in weight monitoring: observational analysis." *Journal of Medical Internet Research* 2020;22(3):e15790. https://doi.org/10.2196/15790
 3. Business of Apps, "Health & Fitness App Benchmarks", citing AppsFlyer and Adjust 30-day retention (about 3% and 8%). https://businessofapps.com/data/health-fitness-app-benchmarks (accessed 28 Oct 2026). Cross-check: Apptopia, https://apptopia.com/blog/we-know-you-didnt-keep-your-new-years-resolutions/
-4. [[Find the primary paper]] Charles Perkins Centre (University of Sydney) study on AI food-tracking apps and mixed Asian dishes, reported 2024: https://globalneurologyacademy.org/news/ai-food-tracking-apps-need-improvement-to-address-accuracy-cultural-diversity/2468077/
+4. Chen J, et al. "Evaluating the quality and comparative validity of manual food logging and artificial intelligence-enabled food image recognition in apps for nutrition care." *Nutrients* 2024;16(15):2573. https://doi.org/10.3390/nu16152573. The beef pho figure (49% overestimate) is from the University of Sydney's coverage of the study: https://www.sydney.edu.au/news-opinion/news/2024/08/29/ai-food-tracking-apps-need-improvement-to-address-cultural-diversity.html
 5. Longvah T. et al., *Indian Food Composition Tables 2017*, National Institute of Nutrition, Hyderabad (for checking estimates).
 6. Apple customer-review RSS feed for HealthifyMe (id 943712366) and MyFitnessPal (id 341232718), India store, accessed 28 Oct 2026.
 
@@ -188,6 +188,6 @@ Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing
 
 | Tool used | What it was used for | How I checked its output |
 |---|---|---|
-| Claude (Claude Code) | Proposed the customer, feature decisions and app design; wrote the app code and the first draft of this report; searched for and summarised published sources. | [[Edit to match what you really did. Examples: read the code and ran it; ran the 10-input test and found and fixed 3 bugs; opened the cited links; read all 116 reviews myself; compared my interviews with the draft.]] |
-| Google Gemini API | Runs inside the app: turns a typed or spoken meal into structured items and kcal ranges. | Ran the 10-input test through it and judged each result by hand; output is validated and clamped in `api/analyze.js`; the red-flag rules run before it. |
-| Apple review feed (not AI) | Source of the 116 reviews. | Spot-checked tags against the originals in `docs/review-coding.csv`. |
+| Claude (Claude Code, Anthropic) | Worked with me on the app idea and the feature decisions; wrote the app code and the test script; read and tagged the 116 reviews; found and summarised the published sources; drafted the report from my interview answers and my instructions. | I read the report and approved the decisions and the wording. I did the interviews myself: they are my friends' own words, saved unedited in `docs/`. The 10-input test was run through the live app and I reviewed the table and accepted the judgements. Jose used the live app and told me it works. The citations were looked up by DOI or publisher page, and where a page could not be opened I cited only what I could confirm. The review tags are in `docs/review-coding.csv` so anyone can check them against the reviews. |
+| Google Gemini (API) | Runs inside the app: turns a typed or spoken meal into items and kcal ranges. | A rule-based safety check runs before it, its output is validated in `api/analyze.js`, and I tested it on ten realistic inputs, reporting the failures in Q3. |
+| Apple review feed (not AI) | Source of the 116 reviews. | The raw reviews are not edited; the tags are in `docs/review-coding.csv`. |
