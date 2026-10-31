@@ -1,6 +1,6 @@
 # Report: Thali Talk
 
-**[YOUR FULL NAME] · Roll No. [ROLL NUMBER]**
+**Prathmesh Pratap Pawar · Roll No. PGDMAI-25-06**
 
 > **Before you submit, search this file for `[[` and `[YOUR`.** Those are the parts only you can supply: the three interviews, the user test, your name and signature, and the live-AI test run. I have left them blank on purpose rather than invent them. Delete this note when done.
 
@@ -149,7 +149,7 @@ Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing
 2. I have not submitted this work, in whole or in part, for assessment in any other course.
 3. I have used generative AI tools only as permitted by the project brief, and I have disclosed that use below.
 
-**Name:** [YOUR NAME] · **Roll No.:** [ROLL NO] · **Date:** [DATE]
+**Name:** Prathmesh Pratap Pawar · **Roll No.:** PGDMAI-25-06 · **Date:** 31 October 2026
 
 **AI-use disclosure**
 
