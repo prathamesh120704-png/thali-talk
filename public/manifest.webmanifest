@@ -1,0 +1,14 @@
+{
+  "name": "Thali Talk",
+  "short_name": "Thali Talk",
+  "description": "Say what you ate, in Hinglish or English. Thali Talk does the logging and the maths.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fff7ef",
+  "theme_color": "#b5179e",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}

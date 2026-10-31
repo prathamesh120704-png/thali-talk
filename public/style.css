@@ -205,3 +205,14 @@ textarea:focus{border-color:var(--pink);box-shadow:0 0 0 4px color-mix(in srgb,v
 .seg button{flex:1;min-height:36px;padding:4px 8px;font-size:13.5px;font-weight:600;border-radius:99px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.55)}
 .seg button.on{background:#fff;color:#7a1f8a;border-color:#fff}
 .proteinLine{margin:8px 0 0;font-size:14px;font-weight:600;color:#fff}
+
+/* favourites, corrections, explanation */
+.fav{display:inline-flex;flex:0 0 auto;align-items:stretch}
+.chips .fav button{background:color-mix(in srgb,var(--purple) 20%,var(--card));color:var(--ink);border:1px solid color-mix(in srgb,var(--purple) 45%,var(--line))}
+.chips .fav button:first-child{border-radius:99px 0 0 99px;border-right:0}
+.chips .fav button:last-child{border-radius:0 99px 99px 0;padding:4px 10px}
+.helpers{margin:12px 0 4px}
+.helpers .fixrow{display:flex;gap:8px;margin-top:8px}
+.helpers .fixrow input{flex:1;font:inherit;color:inherit;background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:8px 12px;min-height:40px;min-width:0}
+.helpers .fixrow input:focus{border-color:var(--pink);outline:none}
+.explain{font-size:14.5px}

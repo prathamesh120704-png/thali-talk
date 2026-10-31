@@ -1,10 +1,11 @@
 // Vercel serverless function. The API key lives only in the host's environment variables.
-// POST { mode: "meal" | "profile", text, hour? }  ->  JSON (see SYSTEM_MEAL for the shape)
+// POST { mode: "meal" | "profile" | "explain" | "correct", text }  ->  JSON (see SYSTEM_MEAL for the shape)
 const Engine = require("../public/engine.js");
 
 // Tried in order; a busy or retired model falls through to the next one.
 const MODELS = [process.env.GEMINI_MODEL || "gemini-3.8-flash", "gemini-flash-latest", "gemini-flash-lite-latest"];
 const MAX_CHARS = 600;
+const MAX_CHARS_LONG = 2500; // explain / correct modes carry the current items as JSON
 
 const SYSTEM_MEAL = `You are the food-logging brain of "Thali Talk", an app for Indian adults who eat mostly home-cooked food.
 The user types or dictates, in English, Hindi or Hinglish, what they ate. Turn it into a structured log.
@@ -23,6 +24,16 @@ Set "when" to "yesterday" if the user says it was yesterday or last night (kal r
  "red_flag":null|str,
  "when":"today"|"yesterday",
  "note":str}`;
+
+const SYSTEM_EXPLAIN = `You explain a calorie estimate for an Indian home-cooked meal, to the person who ate it.
+Input is JSON: what they said, and the items with kcal, range, protein and assumptions.
+In at most 60 words, plain and neutral, say how the main numbers were reached (typical portion, cooking oil, and so on), which assumption matters most, and what the person could tell you to make it more accurate. Never judge the food, never give medical advice.
+Respond ONLY with JSON: {"explanation":str}`;
+
+const SYSTEM_CORRECT_PREFIX = `The user has already logged a meal (the "items" in the input JSON) and now gives a short correction in English, Hindi or Hinglish ("correction").
+Apply ONLY that correction and return the FULL corrected meal in the exact schema below: keep untouched items unchanged, rescale kcal, range and protein when a quantity changes, remove items they say they did not eat, add items they say they forgot. Do not add anything else.
+
+`;
 
 const SYSTEM_PROFILE = `Read a short self-description from an Indian adult setting a gentle health goal. Extract only what is stated.
 Respond ONLY with JSON: {"age":int|null,"kg":number|null,"cm":number|null,"sex":"m"|"f"|null,"goal":"lose"|"maintain"|"gain","veg":boolean}.
@@ -78,10 +89,11 @@ module.exports = async (req, res) => {
   if (req.method === "GET") return res.status(200).json({ ai: !!process.env.GEMINI_API_KEY }); // free health check
   if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
   const body = typeof req.body === "string" ? JSON.parse(req.body || "{}") : req.body || {};
-  const text = String(body.text || "").slice(0, MAX_CHARS).trim();
+  const longMode = body.mode === "explain" || body.mode === "correct";
+  const text = String(body.text || "").slice(0, longMode ? MAX_CHARS_LONG : MAX_CHARS).trim();
   if (!text) return res.status(400).json({ error: "empty" });
   // Safety check runs before and independent of the model.
-  const flag = Engine.redFlag(text);
+  const flag = body.mode === "explain" ? null : Engine.redFlag(text);
   if (flag && !flag.soft) return res.status(200).json({ items: [], clarify: null, redFlag: flag.message, note: "", source: "rules" });
   if (!process.env.GEMINI_API_KEY) return res.status(503).json({ error: "ai_unavailable" });
   try {
@@ -90,7 +102,12 @@ module.exports = async (req, res) => {
       p.target = Engine.estimateTarget(p); p.source = "ai";
       return res.status(200).json(p);
     }
-    const out = cleanMeal(await callGemini(SYSTEM_MEAL, text));
+    if (body.mode === "explain") {
+      const o = await callGemini(SYSTEM_EXPLAIN, text);
+      return res.status(200).json({ explanation: String(o.explanation || "").slice(0, 500), source: "ai" });
+    }
+    const system = body.mode === "correct" ? SYSTEM_CORRECT_PREFIX + SYSTEM_MEAL : SYSTEM_MEAL;
+    const out = cleanMeal(await callGemini(system, text));
     if (flag && flag.soft && !out.note) out.note = flag.message;
     return res.status(200).json(out);
   } catch (e) {

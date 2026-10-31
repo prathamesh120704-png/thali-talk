@@ -15,8 +15,8 @@
   let aiOnline = null;
 
   function load() {
-    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { s.water = s.water || {}; return s; } } catch (e) {}
-    return { profile: null, days: {}, water: {} };
+    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { s.water = s.water || {}; s.favs = s.favs || []; return s; } } catch (e) {}
+    return { profile: null, days: {}, water: {}, favs: [] };
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   const dkey = d => { d = d || new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
@@ -80,7 +80,7 @@
     else note = "Base budget " + fmt(b.base) + " kcal. Log whenever you remember.";
     if (goal === "gain") note = entries.length ? (eaten >= b.target ? "Target reached. Going over is fine while you're bulking; what matters is not falling short." : "About " + fmt(Math.max(0, b.target - eaten)) + " kcal still to go to reach your target. Protein is shown above.") : "Bulking: base target " + fmt(b.base) + " kcal. Log your meals and keep an eye on protein.";
     $("budgetNote").textContent = (state.profile.cond ? state.profile.cond + " " : "") + note;
-    renderLog(entries); renderWeek(b); renderSummary(b); renderWater(); renderRecent(); renderCheckin(b, entries, eaten);
+    renderLog(entries); renderWeek(b); renderSummary(b); renderWater(); renderFavs(); renderRecent(); renderCheckin(b, entries, eaten);
   }
 
   let editing = null; // index of the log entry being edited today
@@ -116,6 +116,7 @@
       const mk = (label, aria, fn) => { const b = document.createElement("button"); b.className = "ghost small"; b.textContent = label; b.setAttribute("aria-label", aria); b.onclick = fn; right.lastChild.appendChild(b); };
       mk("Edit", "Edit amounts in this entry", () => { editing = editing === idx ? null : idx; render(); });
       mk("Again", "Log this same meal again", () => addEntry(e.items, e.text));
+      mk("★ Save", "Save this meal as a favourite", () => saveFavourite(e));
       mk("Remove", "Remove this entry", () => { entries.splice(idx, 1); editing = null; save(); render(); });
       li.append(left, right);
       if (editing === idx) li.appendChild(buildEditor(e));
@@ -172,6 +173,103 @@
     let txt = "You logged " + logged.length + " of the last 7 days, averaging about " + fmt(avg) + " kcal on those days. " + within + (within === 1 ? " of them was" : " of them were") + (gain ? " at or near your target." : " within your budget.");
     if (wDays.length) txt += " Water: about " + (wDays.reduce((a, c) => a + c, 0) / wDays.length).toFixed(1) + " glasses on days you tracked it.";
     el.textContent = txt;
+  }
+
+
+  // ---------- Generic AI call (null when unavailable) ----------
+  async function callApi(mode, text) {
+    try {
+      const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 28000);
+      const r = await fetch("/api/analyze", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode, text }), signal: ctl.signal });
+      clearTimeout(to);
+      if (!r.ok) return null;
+      setMode(true); return await r.json();
+    } catch (e) { return null; }
+  }
+  const slim = i => ({ name: i.name, qty: i.qty, unit: i.unit, kcal: i.kcal, kcalLow: i.kcalLow, kcalHigh: i.kcalHigh, protein: i.protein || 0, confidence: i.confidence, assumption: i.assumption || "" });
+
+  // "Why these numbers?" and "Fix something" live in the result card
+  function addHelpers(box) {
+    const wrap = document.createElement("div"); wrap.className = "helpers";
+    const why = document.createElement("button"); why.className = "ghost small"; why.textContent = "Why these numbers?";
+    const out = document.createElement("div"); out.className = "alert explain hidden";
+    why.onclick = async () => {
+      if (!pending) return;
+      if (!out.classList.contains("hidden")) { out.classList.add("hidden"); return; }
+      out.textContent = "Thinking…"; out.classList.remove("hidden");
+      const r = await callApi("explain", JSON.stringify({ said: pending.text, items: pending.items.map(slim) }));
+      out.textContent = r && r.explanation ? r.explanation : explainOffline(pending.items);
+    };
+    const fix = document.createElement("div"); fix.className = "fixrow";
+    const inp = document.createElement("input"); inp.type = "text"; inp.maxLength = 200;
+    inp.placeholder = 'Fix something? e.g. "it was 3 rotis" or "no dahi"'; inp.setAttribute("aria-label", "Correct this meal in your own words");
+    const go = document.createElement("button"); go.className = "small"; go.textContent = "Update";
+    const run = () => correct(inp.value.trim(), go);
+    go.onclick = run; inp.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); run(); } });
+    fix.append(inp, go); wrap.append(why, out, fix); box.appendChild(wrap);
+  }
+
+  function explainOffline(items) {
+    const lines = items.map(i => i.name + ": " + i.qty + " " + i.unit + " is about " + i.kcal + " kcal" + (i.assumption ? " (" + i.assumption + ")" : "")).join("; ");
+    return "Each number is a typical home-cooked amount, not a measurement. " + lines + ". The range is wider where oil, ghee, sugar or portion size could vary. Telling me the real amount narrows it.";
+  }
+
+  // Offline fallback for corrections: change a quantity, remove an item, or add a forgotten one.
+  function correctOffline(items, text) {
+    const out = JSON.parse(JSON.stringify(items));
+    const removing = /\b(no|not|without|nahi|nahin|nhi|skip|skipped|didn't|didnt)\b/i.test(text);
+    let changed = false;
+    (E.demoParse(text).items || []).forEach(p => {
+      const idx = out.findIndex(o => o.name === p.name);
+      if (removing && p.confidence === "low") { if (idx >= 0) { out.splice(idx, 1); changed = true; } }
+      else if (!removing && p.confidence !== "low") {
+        if (idx >= 0) rescale(out[idx], p.qty); else out.push(p);
+        changed = true;
+      }
+    });
+    return changed ? out : null;
+  }
+
+  async function correct(text, btn) {
+    if (!pending || !text) return;
+    btn.disabled = true; btn.textContent = "…";
+    const keep = { text: pending.text, when: pending.when };
+    const r = await callApi("correct", JSON.stringify({ items: pending.items.map(slim), correction: text }));
+    if (r && r.redFlag) { showResult(r, keep.text); return; }
+    if (r && r.items && r.items.length) { showResult({ items: r.items, clarify: null, note: r.note || "", when: keep.when }, keep.text); return; }
+    const items = correctOffline(pending.items, text);
+    if (items && items.length) { showResult({ items, clarify: null, note: "Updated using the offline helper.", when: keep.when }, keep.text); return; }
+    btn.disabled = false; btn.textContent = "Update";
+    const box = $("result"), n = document.createElement("div"); n.className = "alert";
+    n.textContent = 'I couldn\'t apply that. Try "it was 3 rotis", "no dahi", or "also 1 banana", or use Edit after saving.';
+    box.insertBefore(n, box.querySelector(".helpers"));
+  }
+
+  // ---------- Favourites (named meals) ----------
+  function renderFavs() {
+    const box = $("favs"); box.innerHTML = "";
+    box.classList.toggle("hidden", !state.favs.length);
+    state.favs.forEach((f, idx) => {
+      const w = document.createElement("span"); w.className = "fav";
+      const b = document.createElement("button"); b.textContent = "★ " + f.name; b.setAttribute("aria-label", "Log favourite: " + f.name);
+      b.onclick = () => addEntry(f.items, f.text);
+      const x = document.createElement("button"); x.textContent = "×"; x.setAttribute("aria-label", "Remove favourite " + f.name);
+      x.onclick = () => { state.favs.splice(idx, 1); save(); render(); };
+      w.append(b, x); box.appendChild(w);
+    });
+  }
+  function saveFavourite(e) {
+    const def = e.items.map(i => i.name).slice(0, 2).join(" + ");
+    const name = (prompt("Name this meal (for example: my usual tiffin)", def) || "").trim().slice(0, 40);
+    if (!name) return;
+    state.favs.unshift({ name, text: e.text, items: JSON.parse(JSON.stringify(e.items)) });
+    state.favs = state.favs.slice(0, 8); save(); render();
+  }
+
+  // ---------- Share ----------
+  function shareWeek() {
+    const msg = "My week on Thali Talk: " + $("weekSummary").textContent + " " + location.origin;
+    window.open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener");
   }
 
   // ---------- Export ----------
@@ -269,6 +367,7 @@
       });
       box.appendChild(chips);
     }
+    addHelpers(box);
     const row = document.createElement("div"); row.className = "row";
     const ok = document.createElement("button"); ok.className = "primary grow"; ok.textContent = "Looks right, save";
     ok.onclick = confirmMeal;
@@ -279,7 +378,7 @@
   function applyScale(f) {
     if (!pending) return;
     const targets = pending.items.filter(i => i.confidence === "low");
-    (targets.length ? targets : pending.items).forEach(i => { i.kcal = Math.round(i.kcal * f); i.kcalLow = Math.round(i.kcalLow * f); i.kcalHigh = Math.round(i.kcalHigh * f); i.confidence = "medium"; i.assumption = "You told me the size"; });
+    (targets.length ? targets : pending.items).forEach(i => { i.kcal = Math.round(i.kcal * f); i.kcalLow = Math.round(i.kcalLow * f); i.kcalHigh = Math.round(i.kcalHigh * f); i.protein = Math.round((i.protein || 0) * f); i.confidence = "medium"; i.assumption = "You told me the size"; });
     showResult({ items: pending.items, clarify: null, note: "", when: pending.when }, pending.text);
   }
   function confirmMeal() {
@@ -345,9 +444,11 @@
     $("profileGo").onclick = () => setProfile($("profileText").value.trim());
     $("profileSkip").onclick = () => setProfile("");
     $("editBudget").onclick = () => { const v = parseInt(prompt("Base daily budget in kcal (minimum 1,200). A doctor or dietitian should set this if you have a health condition.", state.profile.target), 10); if (v) { state.profile.target = Math.max(E.FLOOR_KCAL, Math.min(4000, v)); save(); render(); } };
-    $("reset").onclick = () => { if (confirm("Delete all data stored in this browser?")) { state = { profile: null, days: {}, water: {} }; save(); $("result").classList.add("hidden"); render(); } };
+    $("reset").onclick = () => { if (confirm("Delete all data stored in this browser?")) { state = { profile: null, days: {}, water: {}, favs: [] }; save(); $("result").classList.add("hidden"); render(); } };
     $("sample").onclick = loadSample;
     $("exportCsv").onclick = exportCsv;
+    $("shareWeek").onclick = shareWeek;
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
     document.querySelectorAll(".seg button").forEach(btn => btn.onclick = () => {
       const old = state.profile.goal || "maintain", g = btn.dataset.goal; if (g === old) return;
       state.profile.target = E.retarget(state.profile.target, old, g); state.profile.goal = g; save(); render();

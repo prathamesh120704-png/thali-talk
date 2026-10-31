@@ -121,6 +121,11 @@
 | N08 | Weekly summary in words, and CSV export | **Build now** | A light version of F10: no scores or streaks. Export keeps the data in the user's hands (D07). |
 | N09 | Goal setting: lose, maintain or bulk up | **Build now** | Interview 1: a bulker treats "over budget" as success, so trimming the next days is wrong for him. For "bulk up" the catch-up rule is switched off, and the budget moves by 300 kcal when the goal changes (still editable). |
 | N10 | Protein per item and per day | **Build now** | Interview 1: he logged protein, not just calories. The AI and the offline parser both return grams of protein; shown as a plain total, with no protein target and no health claim. |
+| N11 | Correct a meal in plain words ("it was 3 rotis", "no dahi") | **Build now** | The AI's quiet guesses are its main weakness (Q3 tests), so correcting must be as easy as logging. The AI applies only the correction and a rule-based offline helper handles quantity changes, removals and additions. |
+| N12 | "Why these numbers?" | **Build now** | Trust in ranges: the AI explains in about 60 words how it got the numbers and what would sharpen them. |
+| N13 | Named favourites ("my usual tiffin") | **Build now** | Same few meals every week; one tap removes most of the logging effort (Q1 reason 1). Stored only in the browser. |
+| N14 | Share my week on WhatsApp | **Build now** | Plain text summary the user chooses to send; no accounts or friend groups (F18 stays Never). |
+| N15 | Install to home screen and offline shell | **Build now** | Makes the app one tap away. Network-first, so users always get the latest version; AI still needs a connection (the offline parser covers the gap). |
 
 Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing one customer and a small feature set.
 

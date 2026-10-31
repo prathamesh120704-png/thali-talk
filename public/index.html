@@ -6,6 +6,9 @@
 <title>Thali Talk</title>
 <meta name="description" content="Say what you ate, in Hinglish or English. Thali Talk does the logging and the maths.">
 <link rel="stylesheet" href="style.css">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#b5179e">
+<link rel="apple-touch-icon" href="icon-192.png">
 </head>
 <body>
 <div class="notice" role="note">Not medical advice. Demo with made-up data only. It cannot diagnose or prescribe. For chest pain, fainting, blood, or breathlessness, see a doctor.</div>
@@ -60,6 +63,7 @@
     <section class="card">
       <label for="mealText" class="label">What did you eat?</label>
       <textarea id="mealText" rows="2" placeholder="aaj lunch me 2 roti, dal aur thodi sabzi, ek katori dahi"></textarea>
+      <div class="chips hidden" id="favs" aria-label="Favourite meals"></div>
       <div class="chips hidden" id="recent" aria-label="Recent meals"></div>
       <div class="chips" id="examples"></div>
       <div class="row">
@@ -81,6 +85,7 @@
       <div class="label">Last 7 days</div>
       <div id="week" class="week"></div>
       <p id="weekSummary" class="weekSummary"></p>
+      <button id="shareWeek" class="ghost small">Share my week on WhatsApp</button>
       <p class="muted small-text">Grey line = your base budget. Going over today gently trims the next 3 days (never below 1,200). Eating less never earns you extra.</p>
     </section>
 
