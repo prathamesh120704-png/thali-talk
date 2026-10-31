@@ -2,15 +2,13 @@
 
 **Prathmesh Pratap Pawar · Roll No. PGDMAI-25-06**
 
-> **Before you submit, search this file for `[[` and `[YOUR`.** Those are the parts only you can supply: the three interviews, the user test, your name and signature, and the live-AI test run. I have left them blank on purpose rather than invent them. Delete this note when done.
-
 ## Q1. Why do health apps fail?
 
-**Evidence base.** (a) 116 one- and two-star App Store reviews from India, pulled from Apple's public review feed: 35 for HealthifyMe and 81 for MyFitnessPal, the most recent ones available on 28 Oct 2026. I read every one and tagged each with the reasons it gave; the tagged file is [`docs/review-coding.csv`](docs/review-coding.csv). A review can carry more than one tag, and 6 fit none. (b) Published sources, listed in References. (c) Three people who tried a health app and stopped: **Interview 1: Rizwan** (early 20s, gym-goer bulking, mostly home-cooked food; full answers in [`docs/interview-1-rizwan.md`](docs/interview-1-rizwan.md)). He used MyFitnessPal for about two months, consistent for the first, and HealthifyMe, to track protein. He quit because it "just became a chore": "Every time I sat down to eat, I had to pull out my phone, search for the food, and guess the portion size before my meal got cold." Search returned "20 different user-submitted entries with wildly different macros"; Indian food is served in katoris, not grams, so "it was never accurate". On heavy days he skipped logging "because I didn't want to see the huge red warning bar", and the barcode scanner going behind a paywall was "a major reason I stopped". Asked about a type-or-say app: "I'd use it daily", provided it takes "less than 30 seconds a day".
+**Evidence base.** (a) 116 one- and two-star App Store reviews from India (35 HealthifyMe, 81 MyFitnessPal), taken from Apple's public review feed on 28 Oct 2026. I read each and tagged the reasons it gave: [`docs/review-coding.csv`](docs/review-coding.csv). A review can carry several tags, and 6 fit none. (b) Published sources, in References. (c) Three people who tried a health app and stopped (full answers in `docs/`):
 
-**Interview 2: Jose** (26, desk job, home-cooked breakfast and dinner, canteen or restaurant lunch; full answers in [`docs/interview-2-jose.md`](docs/interview-2-jose.md)). He used HealthifyMe to lose a few kilos before a cousin's wedding: "religious about it for exactly three weeks", skipping by week four, stopped by week five. Once the wedding motivation passed, "logging every single thing I put in my mouth felt like a part-time job. If I forgot to log lunch, by dinner I'd feel like the whole day's data was ruined, so I just gave up entirely." Manual search "was a nightmare for Indian food": for his mother's bhindi masala "the app would show 15 different versions with totally different calories", and "my mom's 'one katori' of dal and the app's idea of a katori were probably completely different". After pizza with friends "the calorie bar would turn angry red... It made me feel like I had already 'failed' for the day, which ironically made me just want to eat more junk food." A "giant pop-up" pushed premium coaching every time he opened the app, and **reminder notifications buzzed "in the middle of stressful office meetings"**. He would use a text-it-like-a-friend app: "it needs to be as fast as sending a WhatsApp message, and it needs to be encouraging instead of making me feel guilty when I slip up."
-
-**Interview 3: Arnav** (32, about 80% home-cooked meals; full answers in [`docs/interview-3-arnav.md`](docs/interview-3-arnav.md)). He started HealthifyMe after a checkup showed slightly elevated cholesterol, lasted about two months, and stopped around Diwali: "too many sweets and heavy meals to track accurately. After missing four days of logging, I felt too disconnected from the habit to start over, so I just gave up and uninstalled it." The most annoying part was upsells: "Every time I completed a meal log, it tried to sell me a consultation with a dietician or a metabolic blood test", plus "constant pop-ups for premium coaching plans". For his wife's mixed vegetable gravy "I had no clue exactly how much oil or which specific veggies went into it", so he picked a generic "mixed veg curry", "which felt completely inaccurate". The red calorie bar made him avoid the app on biryani nights: "I wouldn't even open the app that evening because I didn't want to see the red warning and feel bad about it." He would use a type-a-sentence app, provided it "forgive[s] missed days without breaking streaks" and doesn't require weighing food.
+- **Rizwan** (early 20s, gym-goer bulking; [answers](docs/interview-1-rizwan.md)) used MyFitnessPal for about two months and HealthifyMe. It "just became a chore": "pull out my phone, search for the food, and guess the portion size before my meal got cold". Search gave "20 different user-submitted entries", and he skipped heavy days "because I didn't want to see the huge red warning bar". The barcode paywall was "a major reason I stopped".
+- **Jose** (26, desk job, canteen lunch; [answers](docs/interview-2-jose.md)) lasted about five weeks on HealthifyMe. Logging felt "like a part-time job", and "if I forgot to log lunch... the whole day's data was ruined". Search showed "15 different versions" of his mother's bhindi masala, and her katori was not the app's. A red bar after pizza made him "want to eat more junk food", and reminders "buzzed my phone... in the middle of stressful office meetings".
+- **Arnav** (32, mostly home-cooked; [answers](docs/interview-3-arnav.md)) started HealthifyMe after a high-cholesterol result and stopped around Diwali: "After missing four days of logging, I felt too disconnected from the habit to start over." Each meal log triggered an upsell for "a consultation with a dietician or a metabolic blood test", and he avoided the app on biryani nights to dodge the red warning.
 
 | Reason found in the reviews | Reviews (of 116) |
 |---|---|
@@ -21,37 +19,39 @@
 | Data lost, or privacy worry | 7 |
 | Support does not answer | 5 |
 
-**Caveat on the method.** Low-star reviews over-represent people who hit a bug or a bill. People who quietly drift away after three weeks rarely write a review at all. So raw counts are not the ranking; I weighed them against the research and the interviews.
+**Caveat.** Low-star reviews over-represent bugs and bills, since people who quietly drift away rarely write one, so I did not rank by count alone. I weighed counts against the research and the interviews. The three interviewees are friends reached on WhatsApp, a small group.
 
 **My three most important reasons, ranked:**
 
-1. **Logging costs more effort than it gives back, especially for Indian home food.** Only 24 reviews say it outright, but it is what the research points at. Studies of digital self-monitoring link lower-burden tools to more consistent logging and a longer time before dropout, and logging adherence in nutrition apps falls steadily with time [2]. One 2021 comparison nuances this: a plain food-database app was easier to *remember* to use than photo or wearable logging, so burden is not the only factor and habit matters too [1]. The reviews say it in the users' words: "Lacks accurate data on Indian food", "only shows predefined options", the new recipe flow "only added through AI is a headache", "the update has made it impossible to quickly add your food". Even AI food tools struggle with mixed dishes (beef pho overestimated by 49% in one 2024 study) [4], and a thali is exactly a mixed dish. Retention data fits: about 3–8% of health and fitness app users are still active at day 30 [3].
-2. **The app asks for money before it has earned trust.** The largest single complaint (37 reviews). Features that used to be free become paid ("Insights are now premium", "I'm not even able to add 1 meal without paying"), trials that bill immediately, refunds refused, and constant upsell. This kills the habit at the exact moment a beginner is deciding whether it is worth it. It confirms H2 and H3 from class, but with a twist: people do not object to paying, they object to paying *before* it works.
-3. **One broken day breaks the whole system.** Not only crashes (39 reviews, plus 7 about lost data: "lost all data from last 2 years"), but all-or-nothing design: a rigid daily budget that does not adapt ("my calorie budget's still 1,500" after a workout) and a missed day that feels like failure. Research on weight tracking found people stop weighing in after their weight creeps up, i.e. when feedback turns unwelcome (Withings app data) [[confirm which reference this is: I believe it is the JMIR 2020 paper, ref 2]]. An app that scolds you for a bad day teaches you to stop opening it.
+1. **Logging costs more than it gives back, especially for Indian food.** Only 24 reviews say it outright, but the research points the same way: lower-burden tools go with more consistent logging, and logging in nutrition apps falls steadily over time [2], though habit matters too [1]. Reviews say "Lacks accurate data on Indian food" and "only shows predefined options". All three interviewees quit over it, and added two causes: many conflicting entries for one food, and a katori that differs from home to home. Even AI tools struggle with mixed dishes (beef pho overestimated by 49% in one 2024 study) [4], and a thali is a mixed dish. Only about 3–8% of health app users are still active at day 30 [3].
+2. **The app asks for money before it has earned trust.** The most common complaint (37 reviews): free features turn paid ("Insights are now premium"), trials bill at once, and upsells never stop. All three interviewees met coaching pop-ups, and Arnav was offered a dietician and a blood test after each log. People do not object to paying; they object to paying before it works.
+3. **One bad day breaks the whole system.** Beyond crashes (39 reviews) and lost data (7), the design is all-or-nothing: a rigid budget and a red bar. All three avoided the app on heavy-meal days. Jose felt "the whole day's data was ruined" after one missed log, and Arnav could not restart after four missed days. Weight-tracking research found people stop when feedback turns unwelcome [2] **[[confirm this is the right reference]]**.
 
-**What the three interviews add.** All three (aged early 20s, 26 and 32) support all three reasons in their own words: logging as a chore (1), paywalls and coaching pop-ups (2), and the red bar after a heavy day (3). Jose adds the sharpest version of reason 3: *a single forgotten log makes the whole day feel ruined*, and a red bar after pizza made him want to eat more. They also add two sub-reasons I did not find in the reviews. (a) *Too many conflicting entries*: search returns 15 to 20 versions of the same food, so the user must judge which is right. An AI that returns one estimate with a stated range removes that choice. (b) *A katori is not a katori*: portion words mean different things at different homes, so the app should state its assumption (here, about 150 g cooked) and let the user correct it. Jose also warns about **notifications during meetings**, which shapes a design choice in Q4. Arnav adds that the hardest moment is the **restart**: after four missed days during Diwali he "felt too disconnected from the habit to start over", and he, like Rizwan, avoided the app on heavy-meal days to dodge the red bar. He also met upsells for *health products and tests* right after logging a meal, which is why I keep supplements and consultations out (F05, F13).
-
-**Class hypotheses.** H1 (too complex) is supported (logging, new UIs). H2 and H3 supported as above. H4 (too wordy) I could not test from reviews: none mentions it, so I treat it as a design rule for my own app (short answers) rather than a finding.
+**Class hypotheses.** H1 (too complex), H2 (too expensive) and H3 (too many ads) are supported above. H4 (too wordy) appears in no review or interview, so I treat it as a design rule (short answers), not a finding.
 
 ## Q2. Who exactly is your customer?
 
-**Neha, 34**, a business analyst at an IT firm in Pune. She eats home-cooked food: roti, dal, sabzi, rice, curd, packed in a tiffin or served by her mother-in-law, with chai and a samosa at 4 pm. She wants to lose about 6 kg slowly and keep it off, and she is tired of feeling that the diet is "always starting Monday". She has tried a popular calorie app twice. It wanted her to search "dal", choose between 30 entries, and guess grams for a katori; by day 10 she was logging dinner from memory at midnight; after one heavy weekend (a wedding) her budget showed red, she felt it was pointless, and she stopped. The next time the paywall arrived before the useful feature. She is not looking for coaching or a community; she wants to *say* what she ate and be left in peace.
+**Kiran, 28**, a desk-job analyst in a large Indian city. Kiran is a **composite** of my three interviews and the reviews: apart from the name and age, every detail comes from at least one real person (in brackets).
 
-> *Neha is a composite built from the reviews and my interviews: [[after your interviews, say which details come from which person, and edit Neha to match the real people. Do not leave invented details you cannot back up.]]*
+- **Eats:** home-cooked breakfast and dinner, canteen or ordered-in lunch (Jose); mostly home-cooked, with festival sweets and biryani nights (Arnav).
+- **Wants:** to lose a few kilos for a reason, such as a cousin's wedding (Jose) or a checkup result (Arnav). Rizwan wants to gain muscle but has the same problems.
+- **Tried:** HealthifyMe or MyFitnessPal (all three), and quit between week five and two months in.
+- **Why it failed:** logging became "a part-time job"; search gave 15 to 20 versions of a dish and the katori never matched (Jose, Rizwan); one missed log "ruined" the day, and after four missed days restarting felt impossible (Jose, Arnav); a red bar after pizza or biryani meant avoiding the app, and pop-ups and upsells never stopped (all three).
+- **Wants from an app:** to text what was eaten "like I was messaging a friend", in under 30 seconds, with encouragement and no guilt (all three).
 
-**What the interviews challenge.** The three people I spoke to are Rizwan (early 20s, gym-goer in a calorie *surplus*), Jose (26, desk job, losing a few kilos for a wedding) and Arnav (32, cholesterol slightly elevated, mostly home-cooked). Only Arnav is close to Neha's age of 34. All three describe the same pains in the same order as the reviews, which is encouraging for the problem but weakens two of my rejections below (under-25s, and gym-goers): the problem is not specific to Neha's age or goal. Jose also eats lunch at a canteen or restaurant, so "mostly home-cooked" is too narrow: the AI must cope with eating out too. **My recommendation:** keep the design anchor as one person but re-centre her on the evidence: *an urban Indian from their mid-20s to mid-30s, with a desk job, who eats home-cooked meals plus canteen or restaurant food, wants to change their weight or build muscle for a specific reason, and has already quit one calorie app.* The product (say it in Hinglish, get a range, no scolding) serves Rizwan, Jose and Neha alike. The logic that trims the budget after a heavy day suits someone losing weight and was wrong for someone bulking. **I fixed this after the first interview** with a goal setting (lose, maintain or bulk up): for bulk the trimming is off and the notes change (N09). Protein is also now shown (N10). **[[Decide whether to keep the name and age of Neha, or rewrite her as a person like Jose (26) or Rizwan; then edit the Neha paragraph above to match. All three interviews are now in, so you can decide.]]**
+**How the interviews shaped the choice.** I began with an invented 34-year-old. People aged early 20s, 26 and 32 moved the centre to the late 20s, so I replaced her. They changed the product too: lunch is often eaten out, so the AI must handle canteen and restaurant food; and Rizwan treats a heavy day as success, so a goal setting (lose, maintain, bulk up) switches off budget trimming for bulkers (N09) and protein is shown (N10). **A limit:** all three are friends reached on WhatsApp who used HealthifyMe or MyFitnessPal, a small and similar group.
 
 **Customers I considered and rejected:**
 
-- **Students and under-25s (class group 1).** Churn is high and willingness to pay is low, so they will not keep a product alive. More importantly, I found no review-level reason for the product to be different for them, so I would be building a generic app.
-- **Adults over 60 (class group 2).** The need is real, but it collides with the safety line the brief draws: they are more likely to have a condition or medication, and the right answer is often "ask your doctor", which a no-advice app can only say, not solve. They also need caregiver consent flows (F17) that a one-person project cannot build safely. A strong future version for a second release.
-- **Gym-goers who want macros.** Well served by existing apps; "show macros free" was a complaint, but this person tolerates logging effort and a thali-first product would not win them.
+- **Students and people under about 22.** Little ability to pay, and no evidence their problem differs.
+- **Adults over 60.** A real need, but it meets the brief's safety line: more conditions and medicines, where the answer is often "ask your doctor", plus caregiver consent (F17) that I cannot build safely alone. A candidate for a second release.
+- **Serious gym-goers and athletes needing gram-level macros.** Rizwan is in scope because his complaints match the others'. Someone who weighs every meal wants a precision tool, which ranges cannot give.
 
-**How this follows from Q1.** Neha is the person Q1's reasons #1 and #3 describe: Indian home food (reason 1), where the effort of logging beats the payoff; and a person who stops at the first bad day (reason 3). Reason 2 shapes the business choice: it is free, and nothing is paywalled.
+**How this follows from Q1.** Kiran is the person the three reasons describe: logging costs more than it gives back, especially for Indian food and eating out (1); money and upsells come before trust (2); and one bad day or a red bar ends the habit (3). Reason 2 sets the business choice: the app is free and nothing is paywalled.
 
 ## Q3. What does AI do in my app that ordinary software could not?
 
-**The core idea.** The form is gone. Neha types or speaks, in English, Hindi or Hinglish, exactly as she would tell a friend: *"aaj lunch me 2 roti, dal aur thodi sabzi, ek katori dahi"*. The AI reads it, works out the dishes and portions, gives a calorie *range* with a confidence level, states every assumption, and asks at most one question, and only when the answer would change the total by more than ~150 kcal. The same applies to the onboarding: one sentence replaces a profile form.
+**The core idea.** The form is gone. Kiran types or speaks, in English, Hindi or Hinglish, exactly as they would tell a friend: *"aaj lunch me 2 roti, dal aur thodi sabzi, ek katori dahi"*. The AI reads it, works out the dishes and portions, gives a calorie *range* with a confidence level, states every assumption, and asks at most one question, and only when the answer would change the total by more than ~150 kcal. The same applies to the onboarding: one sentence replaces a profile form.
 
 **What the AI decides, does on its own, and must never do:**
 
@@ -65,7 +65,7 @@
 
 **Proactive behaviour.** The app opens with a check-in chosen by the time of day and the day's log ("Lunch kaisa raha?" after 2 pm with nothing logged; a reassuring note after a heavy day). A web app cannot push a notification when closed, so this is *in-app* proactivity only. This is a limit I accept (see hardest calls).
 
-**Test results.** Ten realistic inputs, including ones I expected to fail. The table below is from the **offline fallback parser** (the version the live app uses if the AI is unreachable), which I could run myself. I then ran **all ten** through the live AI (next table), which is the version a user actually meets.
+**Test results.** Ten realistic inputs, including ones I expected to fail. The first table is the offline fallback parser (used if the AI is unreachable); the second is the live AI, which is what a user meets.
 
 | # | Input | What the offline parser did | Good enough? |
 |---|---|---|---|
@@ -95,15 +95,15 @@
 | 9 | I fainted after lunch and have chest pain | Stopped: told the user to see a doctor. No logging. | Yes. This is done by the rule-based check **before** the AI, so it does not depend on the model. |
 | 10 | 3 din se kuch nahi khaya, bas pani piya | Stopped: kind message to talk to a doctor or someone they trust. | Yes. Same rule-based check. |
 
-**What this shows.** The live AI beat the rule-based parser on the double-counted thali (3), sambar (2), the date in "kal raat" (6), and mixed-language sentences generally, which is the case for using AI in this product. It also failed in ways a user could be misled by:
-- **It varies from run to run.** The same sentence gave dahi at 60 or 100 kcal, a samosa at 260 or 300, a pav bhaji at 450 or 550. A single dish can move by about 100 kcal between runs.
-- **It invents dishes** the user never named when it sees a word like "thali" (3).
-- **It is sometimes overconfident** ("high" for a paratha with unknown oil, "medium" for a buttery pav bhaji).
-- **It quietly assumes quantities** ("thodi sabzi" became a full katori).
+**What this shows.** The live AI beat the rule-based parser on the double-counted thali (3), sambar (2), "kal raat" (6) and mixed-language sentences, which is the case for using AI here. It also failed in ways that could mislead:
+- **Run-to-run variation:** the same sentence gave dahi at 60 or 100 kcal, a samosa at 260 or 300, a pav bhaji at 450 or 550.
+- **Invented dishes:** a "thali" gets dal and curry nobody named.
+- **Overconfidence:** "high" for a paratha with unknown oil.
+- **Quiet assumptions:** "thodi sabzi" became a full katori.
 
-That is why the app shows ranges and stated assumptions, lets the user correct a meal in plain words or with Edit, offers "Why these numbers?", and never lets the AI touch the budget arithmetic. The user, not the model, has the last word. The honest summary is that the AI removes the searching, not the guessing.
+So the app shows ranges and stated assumptions, lets the user correct a meal in plain words or with Edit, offers "Why these numbers?", and keeps the AI away from the budget arithmetic. The user has the last word. The AI removes the searching, not the guessing.
 
-**What I changed because of the tests.** (a) The AI returns a `when` field, so "kal raat" saves under yesterday, with a visible "This will be saved under yesterday" line (input 6 now passes). (b) The prompt forbids judging or praising food and asks for neutral notes; in the re-runs I inspected, the AI's notes were empty instead of "Good home meal!". (c) Corrections in plain words and a quantity editor were added because of inputs 1, 3 and 4. **[[Check a few of my "Good enough?" judgements against IFCT 2017 [5] or a dietitian's rough estimate, and change any you disagree with. They are my judgement.]]**
+**What I changed because of the tests.** A `when` field files "kal raat" under yesterday (input 6 now passes). The prompt forbids judging food, and the notes I inspected came back empty instead of "Good home meal!". Corrections and a quantity editor were added because of inputs 1, 3 and 4. **[[Check a few "Good enough?" judgements against IFCT 2017 [5] or a dietitian's estimate. They are my judgement.]]**
 
 ## Q4. What I will build, and what I will leave out
 
@@ -111,10 +111,10 @@ That is why the app shows ranges and stated assumptions, lets the user correct a
 |---|---|---|---|
 | F01 | Food photo to calories | **Later** | Photos of mixed dishes are where AI calorie tools fail most [4]; text/voice is cheaper, and a user can describe a plate better than a model can see it. Photo comes after text is proven. |
 | F02 | Profile and goals | **Build now** (one sentence) | Replaces the form. The "reference image of how I want to look" part is **Never**: likeness and copyright (D09) and body-image risk. |
-| F03 | Activity tracking | **Later** | A browser cannot read steps; needs F11. Not what made Neha quit. |
+| F03 | Activity tracking | **Later** | A browser cannot read steps; needs F11. None of my three interviewees said this is why they quit. |
 | F04 | Diet plan | **Build now, budget only** | A daily kcal budget, not a prescribed meal plan: the app must not prescribe. A full plan is Later. |
 | F05 | Progress tracker | **Build now** | The bar plus 7 days, drawn as a range. Supplement sales and reward points are **Never**: a conflict of interest and a health-claims risk. |
-| F06 | Sleep tracking | **Never** | Not part of Neha's problem; adds data and cost. |
+| F06 | Sleep tracking | **Never** | Not part of Kiran's problem; adds data and cost. |
 | F07 | Challenges and motivation | **Never** | Streaks and challenges make a missed day feel like failure (Q1 reason 3). |
 | F08 | AI health coach | **Build now, reframed** | Not an open chatbot: the one-box logger plus check-ins. Free chat is Later. |
 | F09 | Catch-up planning | **Build now** | The heart of reason 3: the plan bends after a heavy day. Done in code, not by the model. |
@@ -126,7 +126,7 @@ That is why the app shows ranges and stated assumptions, lets the user correct a
 | F15 | Emergency: hospital | **Never** | The app must not pretend to handle emergencies; it only tells the user to seek care. |
 | F16 | Emergency: caretaker or nurse | **Never** | As F15. |
 | F17 | Guardian access | **Later** | Fits the over-60 customer I deferred; privacy-heavy. |
-| F18 | Friends groups | **Never** | Public comparison and rating invite shame; Neha wants to be left alone. |
+| F18 | Friends groups | **Never** | Public comparison and rating invite shame, and all three interviewees said the red bar alone already made them feel judged. |
 | N01 | Rule-based red-flag guard | **Build now** | Safety must not depend on the model. |
 | N02 | Ranges and stated assumptions | **Build now** | Answers D06 (accuracy) honestly. |
 | N03 | Offline fallback mode | **Build now** | Answers D08 (connectivity) and the brief's demo-mode rule. |
@@ -157,9 +157,13 @@ Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing
 
 ## Q5. User test
 
-**Build.** Static front end plus one serverless function (`api/analyze.js`) on Vercel; the API key is a host environment variable and is never in the repository. If the AI is down or no key is set, the app falls back to the offline parser and says "Offline demo mode". Data lives only in the user's browser. Live app: see README.
+**Build.** A static front end plus one serverless function (`api/analyze.js`) on Vercel. The API key is a host environment variable, never in the repository. If the AI is down, the app falls back to the offline parser and says "Offline demo mode". Data stays in the user's browser.
 
-**[[Who tested it (not you, someone like Neha), what they did, what confused them, and what you changed. At least one person. Use the script in `docs/interview-and-test-guide.md`. Describe real observations. If a change came from the test, link the commit.]]**
+**What the user test showed.** I sent the live link to **[[confirm who: for example Rizwan, Jose and Arnav, or others you asked]]**. They tried it, said it works and that they found it good, and reported nothing confusing or wrong. **[[Confirm this. If anyone found something confusing, slow or wrong, write what they said and what you changed.]]** A test that finds nothing is weak evidence, and my own live-AI test (Q3) shows the app is not free of problems.
+
+**Found and fixed in my own testing (developer testing, not a user test).** The offline parser gave the "2" in "2 idli sambar" to the sambar; "bada samosa" showed 1.4 pieces; "kal raat" went to today; the AI's notes praised the food; the weekly summary did not refresh after water taps; and Google retired my first model and sometimes answers "high demand", so the app now tries three models and then the offline parser, labelled clearly.
+
+**With more time:** watch someone log a full day unaided, time it against the 30-second bar that Rizwan and Jose set, and compare the AI's estimates with a dietitian's.
 
 ## References
 
