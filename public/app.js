@@ -15,8 +15,8 @@
   let aiOnline = null;
 
   function load() {
-    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) return s; } catch (e) {}
-    return { profile: null, days: {} };
+    try { const s = JSON.parse(localStorage.getItem(KEY)); if (s && s.days) { s.water = s.water || {}; return s; } } catch (e) {}
+    return { profile: null, days: {}, water: {} };
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
   const dkey = d => { d = d || new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
@@ -75,7 +75,22 @@
     else if (entries.length) note = eaten > b.target ? "A little over today. Nothing to fix tonight; I'll spread it gently over the next days." : "Roughly " + fmt(Math.max(0, b.target - eaten)) + " kcal of room left. The range on the bar shows how unsure the estimates are.";
     else note = "Base budget " + fmt(b.base) + " kcal. Log whenever you remember.";
     $("budgetNote").textContent = (state.profile.cond ? state.profile.cond + " " : "") + note;
-    renderLog(entries); renderWeek(b); renderCheckin(b, entries, eaten);
+    renderLog(entries); renderWeek(b); renderSummary(b); renderWater(); renderRecent(); renderCheckin(b, entries, eaten);
+  }
+
+  let editing = null; // index of the log entry being edited today
+
+  // Rescale an item to a new quantity; kcal and range scale proportionally.
+  function rescale(item, qty) {
+    const f = item.qty > 0 ? qty / item.qty : 1;
+    item.kcal = Math.round(item.kcal * f); item.kcalLow = Math.round(item.kcalLow * f); item.kcalHigh = Math.round(item.kcalHigh * f);
+    item.qty = qty; item.confidence = "high"; item.assumption = "You set this amount";
+  }
+
+  function addEntry(items, text) {
+    const k = dkey();
+    (state.days[k] = state.days[k] || []).push({ t: Date.now(), text: text, items: JSON.parse(JSON.stringify(items)) });
+    save(); render();
   }
 
   function renderLog(entries) {
@@ -90,12 +105,97 @@
       left.lastChild.textContent = e.items.map(i => i.name).join(", ");
       const right = document.createElement("div");
       const tot = E.totals(e.items);
-      right.innerHTML = "<div></div>";
+      right.innerHTML = '<div></div><div class="actions"></div>';
       right.firstChild.textContent = fmt(tot.kcal) + " kcal";
-      const del = document.createElement("button"); del.className = "ghost small"; del.textContent = "Remove"; del.setAttribute("aria-label", "Remove this entry");
-      del.onclick = () => { entries.splice(idx, 1); save(); render(); };
-      right.appendChild(del);
-      li.append(left, right); ul.appendChild(li);
+      const mk = (label, aria, fn) => { const b = document.createElement("button"); b.className = "ghost small"; b.textContent = label; b.setAttribute("aria-label", aria); b.onclick = fn; right.lastChild.appendChild(b); };
+      mk("Edit", "Edit amounts in this entry", () => { editing = editing === idx ? null : idx; render(); });
+      mk("Again", "Log this same meal again", () => addEntry(e.items, e.text));
+      mk("Remove", "Remove this entry", () => { entries.splice(idx, 1); editing = null; save(); render(); });
+      li.append(left, right);
+      if (editing === idx) li.appendChild(buildEditor(e));
+      ul.appendChild(li);
+    });
+  }
+
+  function buildEditor(entry) {
+    const box = document.createElement("div"); box.className = "editor";
+    const inputs = [];
+    entry.items.forEach(it => {
+      const row = document.createElement("div"); row.className = "erow";
+      const lab = document.createElement("label"); lab.textContent = it.name + " (" + it.unit + ")";
+      const inp = document.createElement("input"); inp.type = "number"; inp.min = "0.25"; inp.max = "20"; inp.step = "0.25"; inp.value = it.qty;
+      inp.setAttribute("aria-label", "Amount of " + it.name);
+      row.append(lab, inp); box.appendChild(row); inputs.push(inp);
+    });
+    const row = document.createElement("div"); row.className = "row";
+    const ok = document.createElement("button"); ok.className = "primary small"; ok.textContent = "Save amounts";
+    ok.onclick = () => {
+      entry.items.forEach((it, n) => { const v = parseFloat(inputs[n].value); if (v > 0 && v <= 20 && v !== it.qty) rescale(it, v); });
+      editing = null; save(); render();
+    };
+    const no = document.createElement("button"); no.className = "ghost small"; no.textContent = "Cancel";
+    no.onclick = () => { editing = null; render(); };
+    row.append(ok, no); box.appendChild(row);
+    return box;
+  }
+
+  // ---------- Water (a gentle counter, not a medical target) ----------
+  const WATER_GOAL = 8;
+  function renderWater() {
+    const n = state.water[dkey()] || 0;
+    $("waterText").textContent = n + " glass" + (n === 1 ? "" : "es") + " today";
+    const d = $("waterDots"); d.innerHTML = "";
+    for (let i = 0; i < Math.max(WATER_GOAL, n); i++) { const dot = document.createElement("i"); if (i < n) dot.className = "on"; d.appendChild(dot); }
+  }
+  function bumpWater(delta) {
+    const k = dkey(); state.water[k] = Math.max(0, Math.min(30, (state.water[k] || 0) + delta)); save(); render();
+  }
+
+  // ---------- Weekly summary (plain words, no scoring) ----------
+  function renderSummary(b) {
+    const days = []; for (let i = 6; i >= 0; i--) days.push(dkey(addDays(new Date(), -i)));
+    const logged = days.filter(k => (state.days[k] || []).length);
+    const el = $("weekSummary");
+    if (!logged.length) { el.textContent = "Nothing logged this week yet. Whenever you're ready."; return; }
+    const kc = logged.map(dayTotal);
+    const avg = kc.reduce((a, c) => a + c, 0) / kc.length;
+    const within = kc.filter(v => v <= b.base + 150).length;
+    const w = days.map(k => state.water[k] || 0);
+    const wDays = w.filter(v => v > 0);
+    let txt = "You logged " + logged.length + " of the last 7 days, averaging about " + fmt(avg) + " kcal on those days. " + within + (within === 1 ? " of them was" : " of them were") + " within your budget.";
+    if (wDays.length) txt += " Water: about " + (wDays.reduce((a, c) => a + c, 0) / wDays.length).toFixed(1) + " glasses on days you tracked it.";
+    el.textContent = txt;
+  }
+
+  // ---------- Export ----------
+  function exportCsv() {
+    const q = v => '"' + String(v == null ? "" : v).split('"').join('""') + '"';
+    const rows = [["date", "time", "what_you_said", "item", "quantity", "unit", "kcal", "kcal_low", "kcal_high"]];
+    Object.keys(state.days).sort().forEach(k => state.days[k].forEach(e => {
+      const tm = new Date(e.t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      e.items.forEach(i => rows.push([k, tm, e.text, i.name, i.qty, i.unit, i.kcal, i.kcalLow, i.kcalHigh]));
+    }));
+    Object.keys(state.water).sort().forEach(k => rows.push([k, "", "water", "glasses", state.water[k], "glass", "", "", ""]));
+    const csv = rows.map(r => r.map(q).join(",")).join("\r\n");
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
+    a.download = "thali-talk-log.csv"; document.body.appendChild(a); a.click(); a.remove();
+  }
+
+  // Recent distinct meals become one-tap chips ("log again")
+  function recentMeals() {
+    const seen = {}, out = [];
+    Object.keys(state.days).sort().reverse().forEach(k => state.days[k].slice().reverse().forEach(e => {
+      const key = (e.text || "").trim().toLowerCase();
+      if (e.text && e.text !== "sample" && !seen[key] && out.length < 4) { seen[key] = 1; out.push(e); }
+    }));
+    return out;
+  }
+  function renderRecent() {
+    const box = $("recent"); box.innerHTML = "";
+    const r = recentMeals(); box.classList.toggle("hidden", !r.length);
+    r.forEach(e => {
+      const b = document.createElement("button"); b.textContent = "↻ " + (e.text.length > 30 ? e.text.slice(0, 28) + "…" : e.text);
+      b.setAttribute("aria-label", "Log again: " + e.text); b.onclick = () => addEntry(e.items, e.text); box.appendChild(b);
     });
   }
 
@@ -238,8 +338,11 @@
     $("profileGo").onclick = () => setProfile($("profileText").value.trim());
     $("profileSkip").onclick = () => setProfile("");
     $("editBudget").onclick = () => { const v = parseInt(prompt("Base daily budget in kcal (minimum 1,200). A doctor or dietitian should set this if you have a health condition.", state.profile.target), 10); if (v) { state.profile.target = Math.max(E.FLOOR_KCAL, Math.min(4000, v)); save(); render(); } };
-    $("reset").onclick = () => { if (confirm("Delete all data stored in this browser?")) { state = { profile: null, days: {} }; save(); $("result").classList.add("hidden"); render(); } };
+    $("reset").onclick = () => { if (confirm("Delete all data stored in this browser?")) { state = { profile: null, days: {}, water: {} }; save(); $("result").classList.add("hidden"); render(); } };
     $("sample").onclick = loadSample;
+    $("exportCsv").onclick = exportCsv;
+    $("waterPlus").onclick = () => bumpWater(1);
+    $("waterMinus").onclick = () => bumpWater(-1);
     setupMic();
     const q = new URLSearchParams(location.search); // ?sample=1&log=... : used for documentation screenshots
     if (q.get("sample")) loadSample();

@@ -84,5 +84,17 @@ button:disabled{opacity:.5;cursor:default}
 .week .base{position:absolute;left:0;right:0;border-top:2px dashed var(--muted);opacity:.55;z-index:1;pointer-events:none}
 
 .foot{text-align:center;margin-top:22px}.foot .small{margin:3px}
+.waterText{font-weight:700;font-size:18px}
+.dots{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.dots i{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);background:var(--bg2)}
+.dots i.on{background:linear-gradient(135deg,#6cb7e6,#3b86c7);border-color:transparent}
+.weekSummary{margin:14px 0 4px;font-size:15px}
+.log li{flex-wrap:wrap}
+.actions{display:flex;gap:6px;justify-content:flex-end;margin-top:6px;flex-wrap:wrap}
+.log li .actions button{display:inline-block;margin:0;min-height:30px;padding:2px 10px;font-size:12.5px}
+.editor{flex:0 0 100%;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:8px}
+.editor .erow{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:6px 0}
+.editor input{width:84px;font:inherit;color:inherit;background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:6px 8px;min-height:38px}
+.editor input:focus{border-color:var(--accent);outline:none}
 @media (max-width:380px){.big{font-size:30px}h1{font-size:20px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}

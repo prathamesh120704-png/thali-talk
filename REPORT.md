@@ -111,6 +111,10 @@
 | N02 | Ranges and stated assumptions | **Build now** | Answers D06 (accuracy) honestly. |
 | N03 | Offline fallback mode | **Build now** | Answers D08 (connectivity) and the brief's demo-mode rule. |
 | N04 | No-scolding tone, no red | **Build now** | Reason 3. |
+| N05 | Edit a logged meal | **Build now** | My live tests showed the AI quietly guessing portions ("thodi sabzi" became a full katori); the user must be able to correct it in two taps. |
+| N06 | "Again" and recent-meal chips | **Build now** | People eat the same few meals; one tap removes most of the logging effort (Q1 reason 1). |
+| N07 | Water counter | **Build now** | Part of F04. A plain tap counter with no medical target, so no health claim. |
+| N08 | Weekly summary in words, and CSV export | **Build now** | A light version of F10: no scores or streaks. Export keeps the data in the user's hands (D07). |
 
 Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing one customer and a small feature set.
 
