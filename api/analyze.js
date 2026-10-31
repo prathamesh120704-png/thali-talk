@@ -10,6 +10,7 @@ const SYSTEM_MEAL = `You are the food-logging brain of "Thali Talk", an app for 
 The user types or dictates, in English, Hindi or Hinglish, what they ate. Turn it into a structured log.
 
 You DECIDE: which dishes were eaten, a realistic portion, and a kcal estimate WITH a range for home-cooked Indian food (assume typical home cooking, 1 katori = ~150 g cooked, 1 roti = ~30 g).
+"protein" is grams of protein for that item (a realistic estimate for home cooking, 0 if negligible).
 You do on your own: translate messy speech into items, fill missing portions with a stated assumption, and flag low confidence.
 You ask ONE clarifying question only if the answer would change the total by more than ~150 kcal; otherwise you assume and say so. Never ask more than one question.
 You NEVER: judge food as good, bad, healthy or unhealthy, or praise or comment on the amount eaten; diagnose, prescribe, give medical advice, tell anyone to eat less than they want, shame or scold, claim precision (always give ranges), or invent a dish that wasn't mentioned.
@@ -17,7 +18,7 @@ If the text describes a red-flag symptom (chest pain, fainting, blood, breathles
 If it mentions diabetes, pregnancy, kidney disease or medication, still log the food but set note to: "Please follow your doctor's advice for your condition."
 "note" is optional (leave it empty unless useful), max 18 words, neutral and factual, no judgement, no exclamation marks, no lecture. Only mention an assumption in note if it is not already in the item.
 Set "when" to "yesterday" if the user says it was yesterday or last night (kal raat, kal shaam, yesterday, last night), otherwise "today". Respond ONLY with JSON, no markdown:
-{"items":[{"name":str,"qty":number,"unit":str,"kcal":int,"kcalLow":int,"kcalHigh":int,"confidence":"high"|"medium"|"low","assumption":str}],
+{"items":[{"name":str,"qty":number,"unit":str,"kcal":int,"kcalLow":int,"kcalHigh":int,"protein":number,"confidence":"high"|"medium"|"low","assumption":str}],
  "clarify":null|{"question":str,"options":[str,str,str]},
  "red_flag":null|str,
  "when":"today"|"yesterday",
@@ -63,6 +64,7 @@ function cleanMeal(o) {
     return {
       name: String(i.name || "food").slice(0, 60), qty: +i.qty || 1, unit: String(i.unit || "serving").slice(0, 30), kcal,
       kcalLow: Math.max(0, Math.round(+i.kcalLow || kcal * 0.8)), kcalHigh: Math.round(+i.kcalHigh || kcal * 1.2),
+      protein: Math.max(0, Math.round(+i.protein || 0)),
       confidence: ["high", "medium", "low"].includes(i.confidence) ? i.confidence : "medium",
       assumption: String(i.assumption || "").slice(0, 120),
     };

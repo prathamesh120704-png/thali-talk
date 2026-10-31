@@ -35,7 +35,7 @@
 
 > *Neha is a composite built from the reviews and my interviews: [[after your interviews, say which details come from which person, and edit Neha to match the real people. Do not leave invented details you cannot back up.]]*
 
-**What Interview 1 challenges.** Rizwan is an early-20s gym-goer in a calorie *surplus*, not a 34-year-old trying to lose weight, and he describes the same pains in the same order. That weakens two of my rejections below (under-25s, and gym-goers): the problem is not specific to Neha's age or goal. I keep Neha as the design anchor because a single concrete person keeps the feature list short, and because the product's core (say it in Hinglish, get a range, no scolding) serves both. But I should state the risk: the logic that trims the budget after a heavy day suits someone losing weight, and is wrong for someone bulking. **[[Decide, after your other interviews, whether to keep Neha or re-centre on a person like Rizwan, and edit this paragraph to match.]]**
+**What Interview 1 challenges.** Rizwan is an early-20s gym-goer in a calorie *surplus*, not a 34-year-old trying to lose weight, and he describes the same pains in the same order. That weakens two of my rejections below (under-25s, and gym-goers): the problem is not specific to Neha's age or goal. I keep Neha as the design anchor because a single concrete person keeps the feature list short, and because the product's core (say it in Hinglish, get a range, no scolding) serves both. The logic that trims the budget after a heavy day suits someone losing weight and was wrong for someone bulking. **I fixed this after the interview** with a goal setting (lose, maintain or bulk up): for bulk the trimming is off and the notes change (N09). Protein is also now shown (N10). **[[Decide, after your other interviews, whether to keep Neha or re-centre on a person like Rizwan, and edit this paragraph to match.]]**
 
 **Customers I considered and rejected:**
 
@@ -119,6 +119,8 @@
 | N06 | "Again" and recent-meal chips | **Build now** | People eat the same few meals; one tap removes most of the logging effort (Q1 reason 1). |
 | N07 | Water counter | **Build now** | Part of F04. A plain tap counter with no medical target, so no health claim. |
 | N08 | Weekly summary in words, and CSV export | **Build now** | A light version of F10: no scores or streaks. Export keeps the data in the user's hands (D07). |
+| N09 | Goal setting: lose, maintain or bulk up | **Build now** | Interview 1: a bulker treats "over budget" as success, so trimming the next days is wrong for him. For "bulk up" the catch-up rule is switched off, and the budget moves by 300 kcal when the goal changes (still editable). |
+| N10 | Protein per item and per day | **Build now** | Interview 1: he logged protein, not just calories. The AI and the offline parser both return grams of protein; shown as a plain total, with no protein target and no health claim. |
 
 Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing one customer and a small feature set.
 

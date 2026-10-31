@@ -53,7 +53,7 @@
     const today = new Date();
     const past = [];
     for (let i = 3; i >= 1; i--) { const k = dkey(addDays(today, -i)); if ((state.days[k] || []).length) past.push({ date: k, eaten: dayTotal(k) }); }
-    return Object.assign({ base }, E.planDay(base, past));
+    return Object.assign({ base }, E.planDay(base, past, state.profile ? state.profile.goal : "maintain"));
   }
 
   // ---------- Render ----------
@@ -66,7 +66,11 @@
     const eaten = dayTotal(k);
     const entries = state.days[k] || [];
     const low = entries.reduce((s, e) => s + E.totals(e.items).low, 0), high = entries.reduce((s, e) => s + E.totals(e.items).high, 0);
+    const goal = state.profile.goal || "maintain";
     $("eaten").textContent = fmt(eaten); $("budget").textContent = fmt(b.target);
+    document.querySelectorAll(".seg button").forEach(x => x.classList.toggle("on", x.dataset.goal === goal));
+    const prot = entries.reduce((s2, e) => s2 + E.totals(e.items).protein, 0);
+    $("proteinLine").textContent = prot ? "Protein today: about " + fmt(prot) + " g" : "";
     const scale = Math.max(b.target, high) * 1.05;
     $("barFill").style.width = Math.min(100, (eaten / scale) * 100) + "%";
     const r = $("barRange"); r.style.left = (low / scale) * 100 + "%"; r.style.width = Math.max(0, (high - low) / scale * 100) + "%";
@@ -74,6 +78,7 @@
     if (b.adjust < 0) note = "Budget trimmed by " + fmt(-b.adjust) + " kcal to absorb a heavier recent day. Spread over a few days, so no stress. " + (b.floorHit ? "I won't go below 1,200." : "");
     else if (entries.length) note = eaten > b.target ? "A little over today. Nothing to fix tonight; I'll spread it gently over the next days." : "Roughly " + fmt(Math.max(0, b.target - eaten)) + " kcal of room left. The range on the bar shows how unsure the estimates are.";
     else note = "Base budget " + fmt(b.base) + " kcal. Log whenever you remember.";
+    if (goal === "gain") note = entries.length ? (eaten >= b.target ? "Target reached. Going over is fine while you're bulking; what matters is not falling short." : "About " + fmt(Math.max(0, b.target - eaten)) + " kcal still to go to reach your target. Protein is shown above.") : "Bulking: base target " + fmt(b.base) + " kcal. Log your meals and keep an eye on protein.";
     $("budgetNote").textContent = (state.profile.cond ? state.profile.cond + " " : "") + note;
     renderLog(entries); renderWeek(b); renderSummary(b); renderWater(); renderRecent(); renderCheckin(b, entries, eaten);
   }
@@ -84,6 +89,7 @@
   function rescale(item, qty) {
     const f = item.qty > 0 ? qty / item.qty : 1;
     item.kcal = Math.round(item.kcal * f); item.kcalLow = Math.round(item.kcalLow * f); item.kcalHigh = Math.round(item.kcalHigh * f);
+    item.protein = Math.round((item.protein || 0) * f);
     item.qty = qty; item.confidence = "high"; item.assumption = "You set this amount";
   }
 
@@ -159,10 +165,11 @@
     if (!logged.length) { el.textContent = "Nothing logged this week yet. Whenever you're ready."; return; }
     const kc = logged.map(dayTotal);
     const avg = kc.reduce((a, c) => a + c, 0) / kc.length;
-    const within = kc.filter(v => v <= b.base + 150).length;
+    const gain = (state.profile.goal || "maintain") === "gain";
+    const within = kc.filter(v => gain ? v >= b.base * 0.9 : v <= b.base + 150).length;
     const w = days.map(k => state.water[k] || 0);
     const wDays = w.filter(v => v > 0);
-    let txt = "You logged " + logged.length + " of the last 7 days, averaging about " + fmt(avg) + " kcal on those days. " + within + (within === 1 ? " of them was" : " of them were") + " within your budget.";
+    let txt = "You logged " + logged.length + " of the last 7 days, averaging about " + fmt(avg) + " kcal on those days. " + within + (within === 1 ? " of them was" : " of them were") + (gain ? " at or near your target." : " within your budget.");
     if (wDays.length) txt += " Water: about " + (wDays.reduce((a, c) => a + c, 0) / wDays.length).toFixed(1) + " glasses on days you tracked it.";
     el.textContent = txt;
   }
@@ -170,12 +177,12 @@
   // ---------- Export ----------
   function exportCsv() {
     const q = v => '"' + String(v == null ? "" : v).split('"').join('""') + '"';
-    const rows = [["date", "time", "what_you_said", "item", "quantity", "unit", "kcal", "kcal_low", "kcal_high"]];
+    const rows = [["date", "time", "what_you_said", "item", "quantity", "unit", "kcal", "kcal_low", "kcal_high", "protein_g"]];
     Object.keys(state.days).sort().forEach(k => state.days[k].forEach(e => {
       const tm = new Date(e.t).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-      e.items.forEach(i => rows.push([k, tm, e.text, i.name, i.qty, i.unit, i.kcal, i.kcalLow, i.kcalHigh]));
+      e.items.forEach(i => rows.push([k, tm, e.text, i.name, i.qty, i.unit, i.kcal, i.kcalLow, i.kcalHigh, i.protein || 0]));
     }));
-    Object.keys(state.water).sort().forEach(k => rows.push([k, "", "water", "glasses", state.water[k], "glass", "", "", ""]));
+    Object.keys(state.water).sort().forEach(k => rows.push([k, "", "water", "glasses", state.water[k], "glass", "", "", "", ""]));
     const csv = rows.map(r => r.map(q).join(",")).join("\r\n");
     const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
     a.download = "thali-talk-log.csv"; document.body.appendChild(a); a.click(); a.remove();
@@ -223,7 +230,7 @@
     if (h >= 10 && h < 12 && !inWin(5, 12)) msg = "Subah ka kuch khaya? Just tell me in a few words. Skipping is fine, I'm only asking.";
     else if (h >= 14 && h < 18 && !inWin(12, 16)) msg = "Lunch kaisa raha? Tell me roughly what was on the plate.";
     else if (h >= 21 && eaten > 0 && eaten < b.target * 0.6) msg = "You've eaten quite lightly today. Is there some dinner or a snack still to log?";
-    else if (h >= 21 && eaten > b.target + 150) msg = "Heavier day today. That's okay. I've already spread it across the next few days, nothing to do.";
+    else if (h >= 21 && eaten > b.target + 150 && (state.profile.goal || "maintain") !== "gain") msg = "Heavier day today. That's okay. I've already spread it across the next few days, nothing to do.";
     else if (b.adjust < 0 && !entries.length) msg = "Yesterday ran a bit high, so today's budget is " + fmt(b.target) + ". Small tweak, not a punishment.";
     c.classList.toggle("hidden", !msg); c.textContent = msg || "";
   }
@@ -245,11 +252,11 @@
       const kc = document.createElement("span"); kc.className = "kc"; kc.textContent = fmt(i.kcal) + " kcal";
       const nm = document.createElement("span"); nm.className = "name"; nm.textContent = i.qty + " " + i.unit + " · " + i.name;
       const tg = document.createElement("span"); tg.className = "tag " + (i.confidence === "low" ? "low" : ""); tg.textContent = i.confidence + " confidence";
-      const as = document.createElement("div"); as.className = "assume"; as.textContent = "range " + fmt(i.kcalLow) + "–" + fmt(i.kcalHigh) + (i.assumption ? " · " + i.assumption : "");
+      const as = document.createElement("div"); as.className = "assume"; as.textContent = (i.protein ? i.protein + " g protein · " : "") + "range " + fmt(i.kcalLow) + "–" + fmt(i.kcalHigh) + (i.assumption ? " · " + i.assumption : "");
       d.append(kc, nm, tg, as); box.appendChild(d);
     });
     const tot = E.totals(res.items);
-    const t = document.createElement("p"); t.innerHTML = "<strong></strong>"; t.firstChild.textContent = "Total ≈ " + fmt(tot.kcal) + " kcal (" + fmt(tot.low) + "–" + fmt(tot.high) + ")"; box.appendChild(t);
+    const t = document.createElement("p"); t.innerHTML = "<strong></strong>"; t.firstChild.textContent = "Total ≈ " + fmt(tot.kcal) + " kcal (" + fmt(tot.low) + "–" + fmt(tot.high) + ")" + (tot.protein ? " · protein ≈ " + fmt(tot.protein) + " g" : ""); box.appendChild(t);
     if (pending.when === "yesterday") { const w = document.createElement("p"); w.className = "muted small-text"; w.textContent = "This will be saved under yesterday."; box.appendChild(w); }
     if (res.note) { const n = document.createElement("div"); n.className = "alert"; n.textContent = res.note; box.appendChild(n); }
     if (res.clarify) {
@@ -341,6 +348,10 @@
     $("reset").onclick = () => { if (confirm("Delete all data stored in this browser?")) { state = { profile: null, days: {}, water: {} }; save(); $("result").classList.add("hidden"); render(); } };
     $("sample").onclick = loadSample;
     $("exportCsv").onclick = exportCsv;
+    document.querySelectorAll(".seg button").forEach(btn => btn.onclick = () => {
+      const old = state.profile.goal || "maintain", g = btn.dataset.goal; if (g === old) return;
+      state.profile.target = E.retarget(state.profile.target, old, g); state.profile.goal = g; save(); render();
+    });
     $("waterPlus").onclick = () => bumpWater(1);
     $("waterMinus").onclick = () => bumpWater(-1);
     setupMic();

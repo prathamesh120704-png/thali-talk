@@ -65,6 +65,13 @@
     ["fruit chaat/fruit", ["fruit", "fruits", "papaya", "orange", "santra", "mango", "aam"], "serving", 90, 0.35, 1],
   ];
 
+  // grams of protein per unit, keyed by FOODS name (rough home-cooking values)
+  const PROTEIN = { "roti": 3, "paratha": 5, "plain rice": 4, "jeera/veg pulao": 6, "dal": 7, "rajma/chole": 9, "sabzi (dry/semi-dry)": 3,
+    "paneer sabzi": 14, "chicken curry": 25, "egg": 6, "fish curry": 20, "curd/dahi": 4, "buttermilk (chaas)": 3, "idli": 2, "dosa (plain)": 4,
+    "poha": 5, "upma": 6, "samosa": 5, "vada pav": 7, "pav bhaji": 10, "chai with sugar & milk": 2, "coffee with milk": 2, "banana": 1, "apple": 0,
+    "biscuit": 1, "bread slice": 2.5, "sandwich": 9, "noodles/maggi": 8, "pizza slice": 12, "burger": 22, "gulab jamun": 2, "sweet / mithai": 3,
+    "cold drink": 0, "nuts": 6, "thali (home, veg)": 20, "salad": 1, "khichdi": 6, "ghee (extra)": 0, "fruit chaat/fruit": 1 };
+
   const NUM_WORDS = { ek: 1, one: 1, do: 2, two: 2, teen: 3, three: 3, char: 4, chaar: 4, four: 4, paanch: 5, panch: 5, five: 5, chhe: 6, chhah: 6, six: 6, aadha: 0.5, half: 0.5, adha: 0.5, dedh: 1.5, dhai: 2.5, thoda: 0.5, thodi: 0.5, bahut: 2, zyada: 2 };
   const SIZE = { chhota: 0.7, chhoti: 0.7, small: 0.7, bada: 1.4, badi: 1.4, large: 1.4, big: 1.4, double: 2 };
 
@@ -114,6 +121,7 @@
         const sizeNote = size !== 1 ? "sized x" + size + " as you said" : "";
         items.push({
           name: f[0], qty: +qty.toFixed(1), unit: f[2],
+          protein: Math.round(qty * size * (PROTEIN[f[0]] || 0)),
           kcal, kcalLow: Math.round(kcal * (1 - f[4])), kcalHigh: Math.round(kcal * (1 + f[4])),
           confidence: guessed ? "low" : f[4] > 0.3 ? "medium" : "high",
           assumption: guessed ? "You didn't say how much, so I assumed " + f[5] + " " + f[2] + (sizeNote ? ", " + sizeNote : "") : (sizeNote || f[6] || ""),
@@ -133,14 +141,16 @@
   }
 
   function totals(items) {
-    return items.reduce((t, i) => ({ kcal: t.kcal + i.kcal, low: t.low + i.kcalLow, high: t.high + i.kcalHigh }), { kcal: 0, low: 0, high: 0 });
+    return items.reduce((t, i) => ({ kcal: t.kcal + i.kcal, low: t.low + i.kcalLow, high: t.high + i.kcalHigh, protein: t.protein + (i.protein || 0) }), { kcal: 0, low: 0, high: 0, protein: 0 });
   }
 
   // ---------- 3. Budget maths (deterministic, so the AI cannot invent numbers) ----------
   // days: [{date, eaten}] oldest..today (eaten = estimated kcal logged, only for days the user logged)
   // Overage is absorbed gently: at most 1/3 of it over the next 3 days, never more than 150 kcal/day,
   // never below FLOOR_KCAL. Under-eating is never "rewarded" with extra budget.
-  function planDay(baseTarget, pastDays) {
+  function planDay(baseTarget, pastDays, goal) {
+    // Someone building muscle wants a surplus, so going over is not a miss: never trim their budget.
+    if (goal === "gain") return { target: baseTarget, adjust: 0, reasons: [], floorHit: false };
     let adjust = 0;
     const reasons = [];
     const recent = pastDays.slice(-3);
@@ -186,6 +196,13 @@
     return p;
   }
 
-  const api = { FLOOR_KCAL, FOODS, redFlag, demoParse, demoProfile, totals, planDay, estimateTarget };
+  const GOAL_OFFSET = { lose: -300, maintain: 0, gain: 300 };
+  // Moving to a new goal shifts the base budget by the difference in offsets (user can still edit it).
+  function retarget(target, oldGoal, newGoal) {
+    const t = target - (GOAL_OFFSET[oldGoal] || 0) + (GOAL_OFFSET[newGoal] || 0);
+    return Math.max(FLOOR_KCAL, Math.min(4000, Math.round(t / 10) * 10));
+  }
+
+  const api = { retarget, FLOOR_KCAL, FOODS, redFlag, demoParse, demoProfile, totals, planDay, estimateTarget };
   if (typeof module !== "undefined" && module.exports) module.exports = api; else root.Engine = api;
 })(typeof self !== "undefined" ? self : this);

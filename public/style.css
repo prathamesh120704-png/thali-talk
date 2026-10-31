@@ -199,3 +199,9 @@ textarea:focus{border-color:var(--pink);box-shadow:0 0 0 4px color-mix(in srgb,v
 .week .d:nth-child(7n+7) .b{background:linear-gradient(180deg,#ffe066,#f59f00)}
 .week .d .b.none{background:var(--line)}
 .weekSummary{color:var(--ink);font-weight:500}
+
+/* goal selector + protein */
+.seg{display:flex;gap:6px;margin:12px 0 4px}
+.seg button{flex:1;min-height:36px;padding:4px 8px;font-size:13.5px;font-weight:600;border-radius:99px;background:transparent;color:#fff;border:1px solid rgba(255,255,255,.55)}
+.seg button.on{background:#fff;color:#7a1f8a;border-color:#fff}
+.proteinLine{margin:8px 0 0;font-size:14px;font-weight:600;color:#fff}
