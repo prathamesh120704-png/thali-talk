@@ -161,6 +161,15 @@ Of the class's concerns, D02, D03, D04, D05 and D10 mostly disappear by choosing
 
 **What the user test showed.** Jose (26, desk job; also Interview 2, so he is from my target group) tried the live app and told me it is "really good". No problems, confusion or wrong numbers were reported to me. That is one tester, and a test that finds nothing is weak evidence, so I do not claim more: my own live-AI test (Q3) shows the app is not free of problems.
 
+**My scripted walkthrough of the live app (my own test, not a user test).** I ran the six tasks I would give a tester against the deployed endpoint, with real calls and timings on 31 Oct 2026:
+- **Log a meal:** typically 1.4 to 1.9 seconds of AI wait (median 1.5 s over five identical calls). Two earlier calls took 5.1 s and 13.5 s, and I did not find out why, so the speed is not always as quick as a WhatsApp message.
+- **Correct a meal:** "it was 3 rotis", "no dahi" and "also 1 banana" were all applied correctly (1.4 to 1.9 s).
+- **"Why these numbers?":** returned a 59-word explanation naming the main assumption (the oil on the dal and ghee on the rotis) and what to tell the app to improve it.
+- **One-sentence profile:** "26 saal, male, 70 kg, 175 cm, thoda weight kam karna hai" gave goal "lose" and a 1,950 kcal budget, which matches my hand calculation.
+- **Safety:** a correction saying "I have chest pain" was stopped in 0.3 s by the rules, before any AI call, with the see-a-doctor message.
+
+This shows the features work, not that people find them easy. It does not replace watching someone use the app.
+
 **Found and fixed in my own testing (developer testing, not a user test).** The offline parser gave the "2" in "2 idli sambar" to the sambar; "bada samosa" showed 1.4 pieces; "kal raat" went to today; the AI's notes praised the food; the weekly summary did not refresh after water taps; and Google retired my first model and sometimes answers "high demand", so the app now tries three models and then the offline parser, labelled clearly.
 
 **With more time:** watch someone log a full day unaided, time it against the 30-second bar that Rizwan and Jose set, and compare the AI's estimates with a dietitian's.
