@@ -13,7 +13,7 @@
       msg: "This sounds like something a doctor should look at, not an app. Please contact a doctor or local emergency services now. I can't assess symptoms." },
     { re: /not eaten for (\d+|several|many) days|haven'?t eaten (in|for) (\d+|days)|starv(e|ing) myself|make myself (throw up|vomit)|purg(e|ing)|(\d+) din se (kuch )?nahi khaya/i,
       msg: "I'm concerned about this. Not eating for days, or making yourself sick, is something to talk to a doctor or a counsellor about. I won't plan meals around it. Please reach out to someone you trust today." },
-    { re: /diabet|sugar (high|level)|insulin|pregnan|garbhvati|kidney|dialysis|on medication|dawai/i,
+    { re: /diabet|sugar (high|level)|insulin|pregnan|garbhvati|kidney|dialysis|on medication|dawai|cholesterol|blood pressure|\bbp\b|hypertension|thyroid|pcos/i,
       msg: "Because this involves a health condition or medicine, please follow your doctor's or dietitian's advice. I'll still log what you ate, but I won't adjust anything for your condition.", soft: true },
   ];
   function redFlag(text) {

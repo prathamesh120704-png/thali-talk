@@ -320,12 +320,23 @@
     const base = document.createElement("div"); base.className = "base"; base.style.bottom = "calc(18px + " + (b.base / max) * (110 - 18) + "px)"; w.appendChild(base);
   }
 
+  // After a gap of 3+ days: welcome the user back. There are no streaks to lose and nothing to catch up on.
+  function welcomeBackMsg(entries) {
+    if (entries.length) return null;
+    const k = dkey();
+    const past = Object.keys(state.days).filter(d => d < k && (state.days[d] || []).length).sort();
+    if (!past.length) return null;
+    const gap = Math.round((new Date(k + "T00:00:00") - new Date(past[past.length - 1] + "T00:00:00")) / 86400000);
+    return gap >= 3 ? "Welcome back! It's been " + gap + " days, and that's completely fine. Nothing to catch up on: just log what you eat today." : null;
+  }
+
   // Proactive check-in: rule-chosen, shown without being asked. (Web apps can't push when closed; see report.)
   function renderCheckin(b, entries, eaten) {
     const c = $("checkin"); const h = new Date().getHours();
     const inWin = (a, z) => entries.some(e => { const x = new Date(e.t).getHours(); return x >= a && x < z; });
-    let msg = null;
-    if (h >= 10 && h < 12 && !inWin(5, 12)) msg = "Subah ka kuch khaya? Just tell me in a few words. Skipping is fine, I'm only asking.";
+    let msg = welcomeBackMsg(entries);
+    if (msg) { /* gap message wins */ }
+    else if (h >= 10 && h < 12 && !inWin(5, 12)) msg = "Subah ka kuch khaya? Just tell me in a few words. Skipping is fine, I'm only asking.";
     else if (h >= 14 && h < 18 && !inWin(12, 16)) msg = "Lunch kaisa raha? Tell me roughly what was on the plate.";
     else if (h >= 21 && eaten > 0 && eaten < b.target * 0.6) msg = "You've eaten quite lightly today. Is there some dinner or a snack still to log?";
     else if (h >= 21 && eaten > b.target + 150 && (state.profile.goal || "maintain") !== "gain") msg = "Heavier day today. That's okay. I've already spread it across the next few days, nothing to do.";
